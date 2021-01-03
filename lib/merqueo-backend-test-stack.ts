@@ -23,6 +23,14 @@ export class MerqueoBackendTestStack extends cdk.Stack {
         ],
       })
     );
+    //layers
+    //
+    const mysqlLayer = new lambda.LayerVersion(this, "mysqlLayer", {
+      code: lambda.Code.fromAsset("layers/mysql.zip"),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_12_X],
+      layerVersionName: "mysql",
+      description: "Layer used to access mysql from node lambda functions",
+    });
 
     // lambdas template
     //
@@ -37,6 +45,7 @@ export class MerqueoBackendTestStack extends cdk.Stack {
         },
         functionName: "getCashBoxCurrentState",
         handler: "getCashBoxCurrentState.handler",
+        layers: [mysqlLayer],
         role: roleMerqueoLambda,
         runtime: lambda.Runtime.NODEJS_12_X,
       }

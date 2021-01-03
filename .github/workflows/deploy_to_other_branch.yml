@@ -1,0 +1,28 @@
+name: No_Master_Branches_CI
+on:
+  push:
+    branches:
+      - "*"
+      - "!master"
+
+jobs:
+  test:
+    name: Run Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run test with jest
+        run: |
+          npm run build
+          npm test -- --forceExit --detectOpenHandles
