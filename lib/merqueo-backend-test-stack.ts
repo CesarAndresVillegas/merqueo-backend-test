@@ -152,9 +152,8 @@ export class MerqueoBackendTestStack extends cdk.Stack {
     const apiGetMovements = apiMerqueoBase.addResource("movements");
     apiGetMovements.addMethod("GET", getMovementsIntegration);
 
-    const apiGetKardex = apiGetMovements
-      .addResource("kardex")
-      .addResource("{date}");
-    apiGetKardex.addMethod("GET", getKardexIntegration);
+    const apiGetKardex = apiGetMovements.addResource("kardex");
+    const apiGetKardexResource = apiGetKardex.addResource("{date}");
+    apiGetKardexResource.addMethod("GET", getKardexIntegration);
   }
 }
