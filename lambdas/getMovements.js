@@ -11,7 +11,7 @@ exports.handler = async (event) => {
   });
 
   const p = new Promise((resolve) => {
-    conn.query("SELECT * FROM cash_box ORDER BY id", function (err, results) {
+    conn.query("SELECT * FROM movements ORDER BY id", function (err, results) {
       resolve(results);
     });
   });
@@ -20,6 +20,6 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ results: result, requirement: 3 }),
+    body: JSON.stringify({ results: result, requirement: 5 }),
   };
 };
