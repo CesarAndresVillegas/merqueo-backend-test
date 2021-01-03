@@ -1,4 +1,4 @@
-const lambdaTest = require("../lambdas/getCashBoxCurrentState");
+const lambdaTest = require("../lambdas/postPay");
 
 test("correct greeting is generated", async () => {
   const expected = {
@@ -75,7 +75,7 @@ test("correct greeting is generated", async () => {
           updated_at: null,
         },
       ],
-      requirement: 3,
+      requirement: 4,
     },
     statusCode: 200,
   };

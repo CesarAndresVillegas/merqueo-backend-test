@@ -11,15 +11,18 @@ exports.handler = async (event) => {
   });
 
   const p = new Promise((resolve) => {
-    conn.query("SELECT * FROM cash_box ORDER BY id", function (err, results) {
-      resolve(results);
-    });
+    conn.query(
+      "UPDATE cash_box SET field1 = new-value1, field2 = new-value2 WHERE ",
+      function (err, results) {
+        resolve(results);
+      }
+    );
   });
 
   const result = await p;
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ results: result, requirement: 3 }),
+    body: JSON.stringify({ results: result, requirement: 1 }),
   };
 };
