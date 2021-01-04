@@ -21,6 +21,10 @@ class MySQLDAO {
     });
   }
 
+  notImplemented() {
+    return "not implemented";
+  }
+
   getCashBoxCurrentState() {
     return new Promise((resolve) => {
       this.connection.query(

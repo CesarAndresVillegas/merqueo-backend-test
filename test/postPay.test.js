@@ -2,8 +2,8 @@ const lambdaTest = require("../lambdas/postPay");
 
 test("correct greeting is generated", async () => {
   const expected = {
-    body: { requirement: 4 },
-    statusCode: 200,
+    body: { results: "not implemented", requirement: 4 },
+    statusCode: 404,
   };
 
   const response = await lambdaTest.handler();

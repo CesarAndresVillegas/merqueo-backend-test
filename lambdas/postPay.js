@@ -5,10 +5,10 @@ exports.handler = async (event) => {
 
   let MySQLDAOInstance = new MySQLDAO();
 
-  let result = await MySQLDAOInstance.getCashBoxCurrentState("operations");
+  let result = await MySQLDAOInstance.notImplemented("operations");
 
   return {
-    statusCode: 200,
+    statusCode: 404,
     body: JSON.stringify({ results: result, requirement: 4 }),
   };
 };
