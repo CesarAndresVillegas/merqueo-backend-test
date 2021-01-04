@@ -106,7 +106,7 @@ class MySQLDAO {
     });
   }
 
-  putCashBoxBase(table, params) {
+  putCashBoxEmpty(table) {
     return new Promise((resolve) => {
       let param1 = " billete_100000 = 0";
       let param2 = " billete_50000 = 0";
