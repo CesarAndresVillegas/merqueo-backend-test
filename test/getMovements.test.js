@@ -2,7 +2,7 @@ const lambdaTest = require("../lambdas/getMovements");
 
 test("correct greeting is generated", async () => {
   const expected = {
-    body: { results: [], requirement: 5 },
+    body: { requirement: 5 },
     statusCode: 200,
   };
 

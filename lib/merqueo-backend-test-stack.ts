@@ -2,10 +2,15 @@ import * as cdk from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as iam from "@aws-cdk/aws-iam";
 import * as apigw from "@aws-cdk/aws-apigateway";
+import db_params from "../secret_manager";
 
 export class MerqueoBackendTestStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const groupsTable = db_params.find(
+      (i) => i.ExportName === "merqueo_backend"
+    );
 
     const roleMerqueoLambda = new iam.Role(this, "roleMerqueoLambda", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
@@ -40,74 +45,104 @@ export class MerqueoBackendTestStack extends cdk.Stack {
       {
         code: lambda.Code.fromAsset("lambdas"),
         environment: {
-          TABLE_NAME: "dbd_table_1",
+          HOST: groupsTable?.Host || "",
+          USER: groupsTable?.User || "",
+          PASSWORD: groupsTable?.Password || "",
+          DATABASE: groupsTable?.DataBase || "",
+          REGION: groupsTable?.Region || "",
         },
         functionName: "getCashBoxCurrentState",
         handler: "getCashBoxCurrentState.handler",
         layers: [mysqlLayer],
         role: roleMerqueoLambda,
         runtime: lambda.Runtime.NODEJS_12_X,
+        timeout: cdk.Duration.seconds(15),
       }
     );
 
     const getKardex = new lambda.Function(this, "getKardex", {
       code: lambda.Code.fromAsset("lambdas"),
       environment: {
-        TABLE_NAME: "dbd_table_1",
+        HOST: groupsTable?.Host || "",
+        USER: groupsTable?.User || "",
+        PASSWORD: groupsTable?.Password || "",
+        DATABASE: groupsTable?.DataBase || "",
+        REGION: groupsTable?.Region || "",
       },
       functionName: "getKardex",
       handler: "getKardex.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
     });
 
     const getMovements = new lambda.Function(this, "getMovements", {
       code: lambda.Code.fromAsset("lambdas"),
       environment: {
-        TABLE_NAME: "dbd_table_1",
+        HOST: groupsTable?.Host || "",
+        USER: groupsTable?.User || "",
+        PASSWORD: groupsTable?.Password || "",
+        DATABASE: groupsTable?.DataBase || "",
+        REGION: groupsTable?.Region || "",
       },
       functionName: "getMovements",
       handler: "getMovements.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
     });
 
     const postPay = new lambda.Function(this, "postPay", {
       code: lambda.Code.fromAsset("lambdas"),
       environment: {
-        TABLE_NAME: "dbd_table_1",
+        HOST: groupsTable?.Host || "",
+        USER: groupsTable?.User || "",
+        PASSWORD: groupsTable?.Password || "",
+        DATABASE: groupsTable?.DataBase || "",
+        REGION: groupsTable?.Region || "",
       },
       functionName: "postPay",
       handler: "postPay.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
     });
 
     const putCashBoxBase = new lambda.Function(this, "putCashBoxBase", {
       code: lambda.Code.fromAsset("lambdas"),
       environment: {
-        TABLE_NAME: "dbd_table_1",
+        HOST: groupsTable?.Host || "",
+        USER: groupsTable?.User || "",
+        PASSWORD: groupsTable?.Password || "",
+        DATABASE: groupsTable?.DataBase || "",
+        REGION: groupsTable?.Region || "",
       },
       functionName: "putCashBoxBase",
       handler: "putCashBoxBase.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
     });
 
     const putCashBoxEmpty = new lambda.Function(this, "putCashBoxEmpty", {
       code: lambda.Code.fromAsset("lambdas"),
       environment: {
-        TABLE_NAME: "dbd_table_1",
+        HOST: groupsTable?.Host || "",
+        USER: groupsTable?.User || "",
+        PASSWORD: groupsTable?.Password || "",
+        DATABASE: groupsTable?.DataBase || "",
+        REGION: groupsTable?.Region || "",
       },
       functionName: "putCashBoxEmpty",
       handler: "putCashBoxEmpty.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
     });
 
     // api template
