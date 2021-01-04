@@ -2,8 +2,8 @@ const lambdaTest = require("../lambdas/getKardex");
 
 test("correct greeting is generated", async () => {
   const expected = {
-    body: { requirement: 6 },
-    statusCode: 200,
+    body: { results: "not implemented", requirement: 6 },
+    statusCode: 404,
   };
 
   const response = await lambdaTest.handler();

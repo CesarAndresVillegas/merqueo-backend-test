@@ -5,11 +5,7 @@ which contains an Amazon SQS queue that is subscribed to an Amazon SNS topic.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
-## Useful commands
+To run unit test you need use `npm run build` and `npm test -- --forceExit --detectOpenHandles`.
 
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
+The `secret_manager-ts` file has database conn params, and most be not added on repository file, but
+in this case, and by merqueo backend test will be added.
