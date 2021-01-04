@@ -5,7 +5,7 @@ exports.handler = async (event) => {
 
   let MySQLDAOInstance = new MySQLDAO();
 
-  let result = await MySQLDAOInstance.findAll("operations");
+  let result = await MySQLDAOInstance.getCashBoxCurrentState("operations");
 
   return {
     statusCode: 200,

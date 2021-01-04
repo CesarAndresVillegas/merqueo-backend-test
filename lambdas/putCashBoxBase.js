@@ -1,14 +1,28 @@
 "use strict";
 
 exports.handler = async (event) => {
-  const MySQLDAO = require("./MySQLDAO");
+  let params = JSON.parse(event.body);
+  let response = null;
 
-  let MySQLDAOInstance = new MySQLDAO();
+  if (!params) {
+    response = {
+      statusCode: 501,
+      body: JSON.stringify({
+        results:
+          "No se recibieron parámetros para establecer la base de la caja.",
+      }),
+    };
+  } else {
+    const MySQLDAO = require("./MySQLDAO");
 
-  let result = await MySQLDAOInstance.findAll("operations");
+    let MySQLDAOInstance = new MySQLDAO();
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ results: result, requirement: 1 }),
-  };
+    let result = await MySQLDAOInstance.putCashBoxBase("cash_box", params);
+
+    response = {
+      statusCode: 200,
+      body: JSON.stringify({ results: result }),
+    };
+  }
+  return response;
 };

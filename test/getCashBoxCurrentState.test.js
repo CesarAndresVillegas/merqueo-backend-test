@@ -2,7 +2,7 @@ const lambdaTest = require("../lambdas/getCashBoxCurrentState");
 
 test("correct greeting is generated", async () => {
   const expected = {
-    body: { requirement: 3 },
+    body: {},
     statusCode: 200,
   };
 
