@@ -1,14 +1,11 @@
-"use strict";
+const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
-  const MySQLDAO = require("./MySQLDAO");
-
   let MySQLDAOInstance = new MySQLDAO();
-
-  let result = await MySQLDAOInstance.getCashBoxCurrentState("cash_box");
-
-  return {
+  let result = await MySQLDAOInstance.getAllMovements();
+  const response = {
     statusCode: 200,
     body: JSON.stringify({ results: result }),
   };
+  return response;
 };
