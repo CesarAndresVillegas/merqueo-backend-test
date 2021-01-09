@@ -1,9 +1,11 @@
 const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
+  const body = JSON.parse(event.body);
+
   let result_body = {};
   let MySQLDAOInstance = new MySQLDAO();
-  await MySQLDAOInstance.setCashBoxBase()
+  await MySQLDAOInstance.setCashBoxBase(body)
     .then(
       (result) => {
         result_body = result;
