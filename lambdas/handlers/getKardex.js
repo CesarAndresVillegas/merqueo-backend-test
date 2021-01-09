@@ -1,7 +1,7 @@
 "use strict";
 
 exports.handler = async (event) => {
-  const MySQLDAO = require("./MySQLDAO");
+  const MySQLDAO = require("../models/MySQLDAO");
 
   let MySQLDAOInstance = new MySQLDAO();
 

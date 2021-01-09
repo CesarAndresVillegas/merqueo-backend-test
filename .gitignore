@@ -1,9 +1,10 @@
 *.js
-!lambdas/*
+!lambdas/**
 !test/*
 !jest.config.js
 *.d.ts
 node_modules
+secret_manager.ts
 
 # CDK asset staging directory
 .cdk.staging

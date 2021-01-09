@@ -1,4 +1,4 @@
-const lambdaTest = require("../lambdas/getKardex");
+const lambdaTest = require("../lambdas/handlers/getKardex");
 
 test("correct greeting is generated", async () => {
   const expected = {
