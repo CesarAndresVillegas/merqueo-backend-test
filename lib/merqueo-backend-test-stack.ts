@@ -2,17 +2,29 @@ import * as cdk from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as iam from "@aws-cdk/aws-iam";
 import * as apigw from "@aws-cdk/aws-apigateway";
-import db_params from "../secret_manager";
+import * as secretsmanager from "@aws-cdk/aws-secretsmanager";
 
 export class MerqueoBackendTestStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const groupsTable = db_params.find(
-      (i) => i.ExportName === "merqueo_backend"
+    const secret = secretsmanager.Secret.fromSecretAttributes(
+      this,
+      "ImportedSecret",
+      {
+        secretArn:
+          "arn:aws:secretsmanager:us-east-1:258052043838:secret:merqueo_params-MTDNow",
+      }
     );
 
-    const roleMerqueoLambda = new iam.Role(this, "roleMerqueoLambda", {
+    const environmentLambdaVars = {
+      HOST: secret.secretValueFromJson("HOST").toString(),
+      USER: secret.secretValueFromJson("USER").toString(),
+      PASSWORD: secret.secretValueFromJson("PASSWORD").toString(),
+      DATABASE: secret.secretValueFromJson("DATABASE").toString(),
+    };
+
+    const roleMerqueoLambda = new iam.Role(this, "roleMerqueoBackendLambda", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
     });
 
@@ -39,20 +51,25 @@ export class MerqueoBackendTestStack extends cdk.Stack {
 
     // lambdas template
     //
-    const getCashBoxCurrentState = new lambda.Function(
+    const emptyCashBox = new lambda.Function(this, "emptyCashBoxMerqueo", {
+      code: lambda.Code.fromAsset("lambdas"),
+      environment: environmentLambdaVars,
+      functionName: "emptyCashBoxMerqueo",
+      handler: "handlers/emptyCashBox.handler",
+      layers: [mysqlLayer],
+      role: roleMerqueoLambda,
+      runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(15),
+    });
+
+    const getAllMovements = new lambda.Function(
       this,
-      "getCashBoxCurrentState",
+      "getAllMovementsMerqueo",
       {
         code: lambda.Code.fromAsset("lambdas"),
-        environment: {
-          HOST: groupsTable?.Host || "",
-          USER: groupsTable?.User || "",
-          PASSWORD: groupsTable?.Password || "",
-          DATABASE: groupsTable?.DataBase || "",
-          REGION: groupsTable?.Region || "",
-        },
-        functionName: "getCashBoxCurrentState",
-        handler: "handlers/getCashBoxCurrentState.handler",
+        environment: environmentLambdaVars,
+        functionName: "getAllMovementsMerqueo",
+        handler: "handlers/getAllMovements.handler",
         layers: [mysqlLayer],
         role: roleMerqueoLambda,
         runtime: lambda.Runtime.NODEJS_12_X,
@@ -60,85 +77,56 @@ export class MerqueoBackendTestStack extends cdk.Stack {
       }
     );
 
-    const getKardex = new lambda.Function(this, "getKardex", {
-      code: lambda.Code.fromAsset("lambdas"),
-      environment: {
-        HOST: groupsTable?.Host || "",
-        USER: groupsTable?.User || "",
-        PASSWORD: groupsTable?.Password || "",
-        DATABASE: groupsTable?.DataBase || "",
-        REGION: groupsTable?.Region || "",
-      },
-      functionName: "getKardex",
-      handler: "handlers/getKardex.handler",
-      layers: [mysqlLayer],
-      role: roleMerqueoLambda,
-      runtime: lambda.Runtime.NODEJS_12_X,
-      timeout: cdk.Duration.seconds(15),
-    });
+    const getCashBoxStatus = new lambda.Function(
+      this,
+      "getCashBoxStatusMerqueo",
+      {
+        code: lambda.Code.fromAsset("lambdas"),
+        environment: environmentLambdaVars,
+        functionName: "getCashBoxStatusMerqueo",
+        handler: "handlers/getCashBoxStatus.handler",
+        layers: [mysqlLayer],
+        role: roleMerqueoLambda,
+        runtime: lambda.Runtime.NODEJS_12_X,
+        timeout: cdk.Duration.seconds(15),
+      }
+    );
 
-    const getMovements = new lambda.Function(this, "getMovements", {
-      code: lambda.Code.fromAsset("lambdas"),
-      environment: {
-        HOST: groupsTable?.Host || "",
-        USER: groupsTable?.User || "",
-        PASSWORD: groupsTable?.Password || "",
-        DATABASE: groupsTable?.DataBase || "",
-        REGION: groupsTable?.Region || "",
-      },
-      functionName: "getMovements",
-      handler: "handlers/getMovements.handler",
-      layers: [mysqlLayer],
-      role: roleMerqueoLambda,
-      runtime: lambda.Runtime.NODEJS_12_X,
-      timeout: cdk.Duration.seconds(15),
-    });
+    const getPreviousCashBoxStatus = new lambda.Function(
+      this,
+      "getPreviousCashBoxStatusMerqueo",
+      {
+        code: lambda.Code.fromAsset("lambdas"),
+        environment: environmentLambdaVars,
+        functionName: "getPreviousCashBoxStatusMerqueo",
+        handler: "handlers/getPreviousCashBoxStatus.handler",
+        layers: [mysqlLayer],
+        role: roleMerqueoLambda,
+        runtime: lambda.Runtime.NODEJS_12_X,
+        timeout: cdk.Duration.seconds(15),
+      }
+    );
 
-    const postPay = new lambda.Function(this, "postPay", {
-      code: lambda.Code.fromAsset("lambdas"),
-      environment: {
-        HOST: groupsTable?.Host || "",
-        USER: groupsTable?.User || "",
-        PASSWORD: groupsTable?.Password || "",
-        DATABASE: groupsTable?.DataBase || "",
-        REGION: groupsTable?.Region || "",
-      },
-      functionName: "postPay",
-      handler: "handlers/postPay.handler",
-      layers: [mysqlLayer],
-      role: roleMerqueoLambda,
-      runtime: lambda.Runtime.NODEJS_12_X,
-      timeout: cdk.Duration.seconds(15),
-    });
+    const paymentRegister = new lambda.Function(
+      this,
+      "paymentRegisterMerqueo",
+      {
+        code: lambda.Code.fromAsset("lambdas"),
+        environment: environmentLambdaVars,
+        functionName: "paymentRegisterMerqueo",
+        handler: "handlers/paymentRegister.handler",
+        layers: [mysqlLayer],
+        role: roleMerqueoLambda,
+        runtime: lambda.Runtime.NODEJS_12_X,
+        timeout: cdk.Duration.seconds(15),
+      }
+    );
 
-    const putCashBoxBase = new lambda.Function(this, "putCashBoxBase", {
+    const setCashBoxBase = new lambda.Function(this, "setCashBoxBaseMerqueo", {
       code: lambda.Code.fromAsset("lambdas"),
-      environment: {
-        HOST: groupsTable?.Host || "",
-        USER: groupsTable?.User || "",
-        PASSWORD: groupsTable?.Password || "",
-        DATABASE: groupsTable?.DataBase || "",
-        REGION: groupsTable?.Region || "",
-      },
-      functionName: "putCashBoxBase",
-      handler: "handlers/putCashBoxBase.handler",
-      layers: [mysqlLayer],
-      role: roleMerqueoLambda,
-      runtime: lambda.Runtime.NODEJS_12_X,
-      timeout: cdk.Duration.seconds(15),
-    });
-
-    const putCashBoxEmpty = new lambda.Function(this, "putCashBoxEmpty", {
-      code: lambda.Code.fromAsset("lambdas"),
-      environment: {
-        HOST: groupsTable?.Host || "",
-        USER: groupsTable?.User || "",
-        PASSWORD: groupsTable?.Password || "",
-        DATABASE: groupsTable?.DataBase || "",
-        REGION: groupsTable?.Region || "",
-      },
-      functionName: "putCashBoxEmpty",
-      handler: "handlers/putCashBoxEmpty.handler",
+      environment: environmentLambdaVars,
+      functionName: "setCashBoxBaseMerqueo",
+      handler: "handlers/setCashBoxBase.handler",
       layers: [mysqlLayer],
       role: roleMerqueoLambda,
       runtime: lambda.Runtime.NODEJS_12_X,
@@ -147,48 +135,52 @@ export class MerqueoBackendTestStack extends cdk.Stack {
 
     // api template
     //
-    const apiMerqueo = new apigw.RestApi(this, "apiMerqueo", {
+    const apiMerqueo = new apigw.RestApi(this, "apiTestMerqueo", {
       defaultCorsPreflightOptions: {
         allowOrigins: apigw.Cors.ALL_ORIGINS,
         allowMethods: apigw.Cors.ALL_METHODS, // this is also the default
       },
-      description:
-        "This api expose services required in the merqueo backend test to manage a cashbox.",
-      restApiName: "Merquedo CashBox",
+      description: "Basic API Gateway for merqueo test.",
+      restApiName: "Merqueo API",
     });
 
-    const getCashBoxCurrentStateIntegration = new apigw.LambdaIntegration(
-      getCashBoxCurrentState
+    const emptyCashBoxIntegration = new apigw.LambdaIntegration(emptyCashBox);
+    const getAllMovementsIntegration = new apigw.LambdaIntegration(
+      getAllMovements
     );
-    const getKardexIntegration = new apigw.LambdaIntegration(getKardex);
-    const getMovementsIntegration = new apigw.LambdaIntegration(getMovements);
-    const postPayIntegration = new apigw.LambdaIntegration(postPay);
-    const putCashBoxBaseIntegration = new apigw.LambdaIntegration(
-      putCashBoxBase
+    const getCashBoxStatusIntegration = new apigw.LambdaIntegration(
+      getCashBoxStatus
     );
-    const putCashBoxEmptyIntegration = new apigw.LambdaIntegration(
-      putCashBoxEmpty
+    const getPreviousCashBoxStatusIntegration = new apigw.LambdaIntegration(
+      getPreviousCashBoxStatus
+    );
+    const paymentRegisterIntegration = new apigw.LambdaIntegration(
+      paymentRegister
+    );
+    const setCashBoxBaseIntegration = new apigw.LambdaIntegration(
+      setCashBoxBase
     );
 
     const apiMerqueoBase = apiMerqueo.root.addResource("merqueo");
 
-    const apiGetCashBox = apiMerqueoBase.addResource("cash_box");
-    apiGetCashBox.addMethod("GET", getCashBoxCurrentStateIntegration);
+    const apiCashBoxBase = apiMerqueoBase.addResource("cash_box");
 
-    const apiPostPay = apiGetCashBox.addResource("payment");
-    apiPostPay.addMethod("POST", postPayIntegration);
+    const apiEmptyCashBox = apiCashBoxBase.addResource("empty");
+    apiEmptyCashBox.addMethod("POST", emptyCashBoxIntegration);
 
-    const apiPutCashBoxBase = apiGetCashBox.addResource("set_base");
-    apiPutCashBoxBase.addMethod("PUT", putCashBoxBaseIntegration);
+    const apiGetCashBoxStatus = apiCashBoxBase.addResource("get_status");
+    apiGetCashBoxStatus.addMethod("GET", getCashBoxStatusIntegration);
 
-    const apiPutCashBoxEmpty = apiGetCashBox.addResource("empty");
-    apiPutCashBoxEmpty.addMethod("PUT", putCashBoxEmptyIntegration);
+    const apiSetCashBoxBase = apiCashBoxBase.addResource("set_base");
+    apiSetCashBoxBase.addMethod("POST", setCashBoxBaseIntegration);
 
-    const apiGetMovements = apiMerqueoBase.addResource("movements");
-    apiGetMovements.addMethod("GET", getMovementsIntegration);
+    const apiGetPreviousStatus = apiCashBoxBase.addResource("get_previous");
+    apiGetPreviousStatus.addMethod("GET", getPreviousCashBoxStatusIntegration);
 
-    const apiGetKardex = apiGetMovements.addResource("kardex");
-    const apiGetKardexResource = apiGetKardex.addResource("{date}");
-    apiGetKardexResource.addMethod("GET", getKardexIntegration);
+    const apiGetAllMovements = apiMerqueoBase.addResource("get_movements");
+    apiGetAllMovements.addMethod("GET", getAllMovementsIntegration);
+
+    const apiPaymentRegister = apiMerqueoBase.addResource("payment_register");
+    apiPaymentRegister.addMethod("POST", paymentRegisterIntegration);
   }
 }
