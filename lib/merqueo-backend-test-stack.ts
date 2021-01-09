@@ -4,7 +4,7 @@ import * as iam from "@aws-cdk/aws-iam";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as secretsmanager from "@aws-cdk/aws-secretsmanager";
 
-export class CavMpbStack extends cdk.Stack {
+export class MerqueoBackendTestStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -135,7 +135,7 @@ export class CavMpbStack extends cdk.Stack {
 
     // api template
     //
-    const apiMPB = new apigw.RestApi(this, "apiTestMerqueo", {
+    const apiMerqueo = new apigw.RestApi(this, "apiTestMerqueo", {
       defaultCorsPreflightOptions: {
         allowOrigins: apigw.Cors.ALL_ORIGINS,
         allowMethods: apigw.Cors.ALL_METHODS, // this is also the default
@@ -161,9 +161,9 @@ export class CavMpbStack extends cdk.Stack {
       setCashBoxBase
     );
 
-    const apiMPBBase = apiMPB.root.addResource("merqueo");
+    const apiMerqueoBase = apiMerqueo.root.addResource("merqueo");
 
-    const apiCashBoxBase = apiMPBBase.addResource("cash_box");
+    const apiCashBoxBase = apiMerqueoBase.addResource("cash_box");
 
     const apiEmptyCashBox = apiCashBoxBase.addResource("empty");
     apiEmptyCashBox.addMethod("POST", emptyCashBoxIntegration);
@@ -177,10 +177,10 @@ export class CavMpbStack extends cdk.Stack {
     const apiGetPreviousStatus = apiCashBoxBase.addResource("get_previous");
     apiGetPreviousStatus.addMethod("GET", getPreviousCashBoxStatusIntegration);
 
-    const apiGetAllMovements = apiMPBBase.addResource("get_movements");
+    const apiGetAllMovements = apiMerqueoBase.addResource("get_movements");
     apiGetAllMovements.addMethod("GET", getAllMovementsIntegration);
 
-    const apiPaymentRegister = apiMPBBase.addResource("payment_register");
+    const apiPaymentRegister = apiMerqueoBase.addResource("payment_register");
     apiPaymentRegister.addMethod("POST", paymentRegisterIntegration);
   }
 }
