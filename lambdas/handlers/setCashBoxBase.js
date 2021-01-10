@@ -1,25 +1,31 @@
 const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
+  let response = {};
   const body = JSON.parse(event.body);
 
-  let result_body = {};
   let MySQLDAOInstance = new MySQLDAO();
   await MySQLDAOInstance.setCashBoxBase(body)
     .then(
       (result) => {
-        result_body = result;
+        response = {
+          statusCode: 200,
+          body: JSON.stringify({ results: result }),
+        };
       },
       (err) => {
-        result_body = err;
+        response = {
+          statusCode: 401,
+          body: JSON.stringify({ results: err }),
+        };
       }
     )
     .catch((except) => {
-      result_body = except;
+      response = {
+        statusCode: 501,
+        body: JSON.stringify({ results: except }),
+      };
     });
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({ results: result_body }),
-  };
+
   return response;
 };
