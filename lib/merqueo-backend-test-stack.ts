@@ -73,7 +73,7 @@ export class MerqueoBackendTestStack extends cdk.Stack {
         layers: [mysqlLayer],
         role: roleMerqueoLambda,
         runtime: lambda.Runtime.NODEJS_12_X,
-        timeout: cdk.Duration.seconds(15),
+        timeout: cdk.Duration.seconds(20),
       }
     );
 
