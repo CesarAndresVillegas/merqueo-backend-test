@@ -34,16 +34,16 @@ class MySQLDAO {
           let response = {};
           if (error) {
             response = {
-              statusCode = 501,
+              statusCode: 501,
               body: JSON.stringify({ results: error }),
-            }
+            };
             reject(response);
           }
           conn.end();
           response = {
-            statusCode = 200,
+            statusCode: 200,
             body: JSON.stringify({ results: results }),
-          }
+          };
           resolve(response);
         }
       );
@@ -66,16 +66,16 @@ class MySQLDAO {
           let response = {};
           if (error) {
             response = {
-              statusCode = 501,
+              statusCode: 501,
               body: JSON.stringify({ results: error }),
-            }
+            };
             reject(response);
           }
           conn.end();
           response = {
-            statusCode = 200,
+            statusCode: 200,
             body: JSON.stringify({ results: results }),
-          }
+          };
           resolve(response);
         }
       );
@@ -579,15 +579,15 @@ class MySQLDAO {
           conn.end();
           if (error) {
             response = {
-              statusCode = 501,
+              statusCode: 501,
               body: JSON.stringify({ results: error }),
-            }
+            };
             reject(response);
           }
           response = {
-            statusCode = 200,
+            statusCode: 200,
             body: JSON.stringify({ results: results }),
-          }
+          };
           resolve(response);
         }
       );
