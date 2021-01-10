@@ -1,5 +1,5 @@
 const MySQLDAO = require("../models/MySQLDAO");
-const cashboxStatus = require("../helpers/variables");
+let cashboxStatus = require("../helpers/variables");
 
 exports.handler = async (event) => {
   let response = {};
