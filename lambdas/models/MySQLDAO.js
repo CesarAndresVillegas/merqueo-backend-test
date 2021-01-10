@@ -307,26 +307,50 @@ class MySQLDAO {
   }
 
   paymentRegister(denominations_to_add) {
-    let {
-      billete_100000 = 0,
-      billete_50000 = 0,
-      billete_20000 = 0,
-      billete_10000 = 0,
-      billete_5000 = 0,
-      billete_1000 = 0,
-      moneda_1000 = 0,
-      moneda_500 = 0,
-      moneda_200 = 0,
-      moneda_100 = 0,
-      moneda_50 = 0,
-      total_payment = 0,
-      cash_back = 0,
-    } = denominations_to_add;
     let conn = this.connection;
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
         if (err) {
           throw err;
+        }
+        let {
+          billete_100000 = 0,
+          billete_50000 = 0,
+          billete_20000 = 0,
+          billete_10000 = 0,
+          billete_5000 = 0,
+          billete_1000 = 0,
+          moneda_1000 = 0,
+          moneda_500 = 0,
+          moneda_200 = 0,
+          moneda_100 = 0,
+          moneda_50 = 0,
+          total_payment = 0,
+          cash_back = 0,
+        } = denominations_to_add;
+
+        let payment =
+          billete_100000 * 100000 +
+          billete_50000 * 50000 +
+          billete_20000 * 20000 +
+          billete_10000 * 10000 +
+          billete_5000 * 5000 +
+          billete_1000 * 1000 +
+          moneda_1000 * 1000 +
+          moneda_500 * 500 +
+          moneda_200 * 200 +
+          moneda_100 * 100 +
+          moneda_50 * 50;
+
+        let cashback = payment - total_payment;
+
+        if (cashback < 0) {
+          return conn.rollback(function () {
+            conn.end();
+            reject(
+              "Petición errónea, los billetes enviados suman un monto menor al pago requerido"
+            );
+          });
         }
         conn.query(
           `SELECT id, quantity, value
@@ -340,21 +364,6 @@ class MySQLDAO {
               });
             }
             let cashbox = results;
-
-            let payment =
-              billete_100000 * 100000 +
-              billete_50000 * 50000 +
-              billete_20000 * 20000 +
-              billete_10000 * 10000 +
-              billete_5000 * 5000 +
-              billete_1000 * 1000 +
-              moneda_1000 * 1000 +
-              moneda_500 * 500 +
-              moneda_200 * 200 +
-              moneda_100 * 100 +
-              moneda_50 * 50;
-
-            let cashback = payment - total_payment;
 
             let movement_params = {
               payment: total_payment,
@@ -413,6 +422,15 @@ class MySQLDAO {
                       break;
                     }
                   }
+                }
+
+                if (cashbackAux > 0) {
+                  return conn.rollback(function () {
+                    conn.end();
+                    reject(
+                      "No se tiene cambio para el pago y la combinación de billetes"
+                    );
+                  });
                 }
 
                 //calcular vueltas
