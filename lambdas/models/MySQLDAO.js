@@ -556,7 +556,7 @@ class MySQLDAO {
         FROM movements m
         JOIN movements_details md ON m.id = md.movements_id
         JOIN cashbox c ON c.id = md.cashbox_id
-        WHERE m.created_at <= ${date_required}
+        WHERE m.created_at <= "${date_required}"
         ORDER BY m.created_at DESC;`,
         function (error, results) {
           if (error) reject(error);
