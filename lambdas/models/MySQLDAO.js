@@ -546,6 +546,25 @@ class MySQLDAO {
       });
     });
   }
+
+  getPreviousCashBoxStatus(date_required) {
+    let conn = this.connection;
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `SELECT m.id, m.payment, m.cash_back, m.operations_id, m.created_at, md.cashbox_id,
+         md.detail_operation_id, md.quantity, c.denomination
+        FROM movements m
+        JOIN movements_details md ON m.id = md.movements_id
+        JOIN cashbox c ON c.id = md.cashbox_id
+        WHERE m.created_at <= ${date_required}
+        ORDER BY m.created_at DESC;`,
+        function (error, results) {
+          if (error) reject(error);
+          resolve(results);
+        }
+      );
+    });
+  }
 }
 
 module.exports = MySQLDAO;
