@@ -9,3 +9,5 @@ To run unit test you need use `npm run build` and `npm test -- --forceExit --det
 
 The `secret_manager-ts` file has database conn params, and most be not added on repository file, but
 in this case, and by merqueo backend test will be added.
+
+# Esta es la versión que se logró a la fecha del día sábado.
