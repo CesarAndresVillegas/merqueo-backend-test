@@ -168,7 +168,7 @@ class MySQLDAO {
                           });
                         }
                         conn.end();
-                        resolve(true);
+                        resolve("La caja se vació correctamente");
                       });
                     });
                   }
@@ -324,7 +324,7 @@ class MySQLDAO {
                         });
                       }
                       conn.end();
-                      resolve(true);
+                      resolve("Se estableció correctamente la base");
                     });
                   });
                 });
@@ -384,7 +384,7 @@ class MySQLDAO {
           });
         }
         conn.query(
-          `SELECT id, quantity, value
+          `SELECT id, quantity, value, denomination
           FROM cashbox
           ORDER BY id;`,
           function (error, results, fields) {
@@ -414,6 +414,7 @@ class MySQLDAO {
 
                 let cashbackAux = Number(cashback);
                 let cashbackQuantity = 0;
+                let cashback_returned = [];
 
                 for (let i = 0; i < cashbox.length; i++) {
                   if (
@@ -430,11 +431,21 @@ class MySQLDAO {
                       cashbackAux =
                         Number(cashbackAux) -
                         Number(cashbox[i].value) * Number(cashbackQuantity);
+                      cashback_returned.push({
+                        bill: `${cashbox[i].denomination}`,
+                        value: `${cashbox[i].value}`,
+                        quantity: cashbackQuantity,
+                      });
                     } else {
                       cashbox[i].quantity = 0;
                       cashbackAux =
                         Number(cashbackAux) -
                         Number(cashbox[i].value) * Number(cashbox[i].quantity);
+                      cashback_returned.push({
+                        bill: `${cashbox[i].denomination}`,
+                        value: `${cashbox[i].value}`,
+                        quantity: cashbox[i].quantity,
+                      });
                     }
 
                     if (cashbackAux == 0) {
@@ -551,7 +562,11 @@ class MySQLDAO {
                         });
                       }
                       conn.end();
-                      resolve(true);
+                      let response = {
+                        cashback: cashback_returned,
+                        text: "Pago registrado correctamente",
+                      };
+                      resolve(response);
                     });
                   });
                 });
