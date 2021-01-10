@@ -1,11 +1,17 @@
 const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
-  let MySQLDAOInstance = new MySQLDAO();
-  let result = await MySQLDAOInstance.getAllMovements();
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({ results: result }),
-  };
+  let response = {};
+  try {
+    let MySQLDAOInstance = new MySQLDAO();
+    let result = await MySQLDAOInstance.getAllMovements();
+    response = result;
+  } catch (error) {
+    response = {
+      statusCode: 500,
+      body: JSON.stringify({ results: error }),
+    };
+  }
+
   return response;
 };

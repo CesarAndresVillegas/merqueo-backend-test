@@ -31,8 +31,20 @@ class MySQLDAO {
         FROM cashbox
         ORDER BY id;`,
         function (error, results) {
-          if (error) reject(error);
-          resolve(results);
+          let response = {};
+          if (error) {
+            response = {
+              statusCode: 501,
+              body: JSON.stringify({ results: error }),
+            };
+            reject(response);
+          }
+          conn.end();
+          response = {
+            statusCode: 200,
+            body: JSON.stringify({ results: results }),
+          };
+          resolve(response);
         }
       );
     });
@@ -51,8 +63,20 @@ class MySQLDAO {
         JOIN detail_operation deop ON deop.id = md.detail_operation_id 
         ORDER BY md.id DESC;`,
         function (error, results) {
-          if (error) reject(error);
-          resolve(results);
+          let response = {};
+          if (error) {
+            response = {
+              statusCode: 501,
+              body: JSON.stringify({ results: error }),
+            };
+            reject(response);
+          }
+          conn.end();
+          response = {
+            statusCode: 200,
+            body: JSON.stringify({ results: results }),
+          };
+          resolve(response);
         }
       );
     });
@@ -63,7 +87,8 @@ class MySQLDAO {
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
         if (err) {
-          throw err;
+          conn.end();
+          reject(err);
         }
         conn.query(
           `SELECT id, quantity
@@ -110,6 +135,7 @@ class MySQLDAO {
                   function (error, results, fields) {
                     if (error) {
                       return conn.rollback(function () {
+                        conn.end();
                         reject(error);
                       });
                     }
@@ -129,15 +155,16 @@ class MySQLDAO {
                     conn.query(insertQuery, function (error, results, fields) {
                       if (error) {
                         return conn.rollback(function () {
+                          conn.end();
                           reject(error);
-                          // throw error;
                         });
                       }
 
                       conn.commit(function (err) {
                         if (err) {
                           return conn.rollback(function () {
-                            throw err;
+                            conn.end();
+                            reject(err);
                           });
                         }
                         conn.end();
@@ -172,7 +199,8 @@ class MySQLDAO {
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
         if (err) {
-          throw err;
+          conn.end();
+          reject(err);
         }
         conn.query(
           `SELECT id, quantity
@@ -193,7 +221,7 @@ class MySQLDAO {
             if (size > 0) {
               return conn.rollback(function () {
                 conn.end();
-                reject("Debe primero limpiar la caja");
+                reject("Para establecer una base la caja debe estar limpia");
               });
             }
 
@@ -245,6 +273,7 @@ class MySQLDAO {
                 conn.query(casbox_query, function (error, results, fields) {
                   if (error) {
                     return conn.rollback(function () {
+                      conn.end();
                       reject(error);
                     });
                   }
@@ -282,15 +311,16 @@ class MySQLDAO {
                   conn.query(insertQuery, function (error, results, fields) {
                     if (error) {
                       return conn.rollback(function () {
+                        conn.end();
                         reject(error);
-                        // throw error;
                       });
                     }
 
                     conn.commit(function (err) {
                       if (err) {
                         return conn.rollback(function () {
-                          throw err;
+                          conn.end();
+                          reject(err);
                         });
                       }
                       conn.end();
@@ -311,7 +341,8 @@ class MySQLDAO {
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
         if (err) {
-          throw err;
+          conn.end();
+          reject(err);
         }
         let {
           billete_100000 = 0,
@@ -383,7 +414,6 @@ class MySQLDAO {
 
                 let cashbackAux = Number(cashback);
                 let cashbackQuantity = 0;
-                let cashbackElements = [];
 
                 for (let i = 0; i < cashbox.length; i++) {
                   if (
@@ -397,22 +427,11 @@ class MySQLDAO {
                     if (cashbackQuantity <= cashbox[i].quantity) {
                       cashbox[i].quantity =
                         Number(cashbox[i].quantity) - Number(cashbackQuantity);
-                      /*
-                      cashbackElements.push({
-                        id: cashbox[i].id,
-                        quantity: cashbackQuantity,
-                      });
-                      */
                       cashbackAux =
                         Number(cashbackAux) -
                         Number(cashbox[i].value) * Number(cashbackQuantity);
                     } else {
                       cashbox[i].quantity = 0;
-                      /*
-                      cashbackElements.push({
-                        id: cashbox[i].id,
-                        quantity: cashbox[i].quantity,
-                      });*/
                       cashbackAux =
                         Number(cashbackAux) -
                         Number(cashbox[i].value) * Number(cashbox[i].quantity);
@@ -432,8 +451,6 @@ class MySQLDAO {
                     );
                   });
                 }
-
-                //calcular vueltas
 
                 let movement_id = results.insertId;
                 let cashbox_query = `UPDATE cashbox SET quantity = CASE id
@@ -475,6 +492,7 @@ class MySQLDAO {
                 conn.query(cashbox_query, function (error, results, fields) {
                   if (error) {
                     return conn.rollback(function () {
+                      conn.end();
                       reject(error);
                     });
                   }
@@ -513,25 +531,23 @@ class MySQLDAO {
                       }, 2 ),`;
                     }
                   }
-                  /*
-                  parameters += ` (${movement_id}, 2, 1, 2 ),`;
-                  parameters += ` (${movement_id}, 11, 4, 2 )`;
-                  */
+
                   insertQuery += parameters;
                   insertQuery = insertQuery.replace(/.$/, ";");
 
                   conn.query(insertQuery, function (error, results, fields) {
                     if (error) {
                       return conn.rollback(function () {
+                        conn.end();
                         reject(error);
-                        // throw error;
                       });
                     }
 
                     conn.commit(function (err) {
                       if (err) {
                         return conn.rollback(function () {
-                          throw err;
+                          conn.end();
+                          reject(err);
                         });
                       }
                       conn.end();
@@ -559,8 +575,20 @@ class MySQLDAO {
         WHERE m.created_at <= "${date_required}"
         ORDER BY m.created_at DESC;`,
         function (error, results) {
-          if (error) reject(error);
-          resolve(results);
+          let response = {};
+          conn.end();
+          if (error) {
+            response = {
+              statusCode: 501,
+              body: JSON.stringify({ results: error }),
+            };
+            reject(response);
+          }
+          response = {
+            statusCode: 200,
+            body: JSON.stringify({ results: results }),
+          };
+          resolve(response);
         }
       );
     });
