@@ -93,7 +93,7 @@ const getOperationData = async (body) => {
     moneda_500: moneda_500,
     moneda_200: moneda_200,
     moneda_100: moneda_100,
-    moneda_50: moneda_100,
+    moneda_50: moneda_50,
     payment: payment,
   };
 };
