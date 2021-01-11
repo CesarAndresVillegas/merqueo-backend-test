@@ -152,7 +152,7 @@ class MySQLDAO {
     });
   }
 
-  setCashBoxBase(denominations_to_add, operationData) {
+  setCashBoxBase(operationData) {
     let conn = this.connection;
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
