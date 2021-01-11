@@ -5,7 +5,7 @@ exports.getAllMovements = async (connection) => {
       `SELECT m.id AS movement_id, md.id AS movement_detail_id, m.payment, m.cash_back,
          o.name AS operation, c.denomination, c.value, md.quantity, deop.name AS movement,
          m.created_at
-        FROM movements m JOIN movements_details md
+        FROM movements m JOIN movements_details md ON m.id = md.movements_id
         JOIN operations o ON m.operations_id = o.id
         JOIN cashbox c ON c.id = md.cashbox_id
         JOIN detail_operation deop ON deop.id = md.detail_operation_id 
