@@ -160,6 +160,7 @@ class MySQLDAO {
           conn.end();
           reject(err);
         }
+
         let movement_params = {
           payment: operationData.payment,
           cash_back: 0,
@@ -257,7 +258,7 @@ class MySQLDAO {
     });
   }
 
-  paymentRegister(denominations_to_add) {
+  paymentRegister(operationData, cashbox) {
     let conn = this.connection;
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
@@ -265,49 +266,15 @@ class MySQLDAO {
           conn.end();
           reject(err);
         }
-        let {
-          billete_100000 = 0,
-          billete_50000 = 0,
-          billete_20000 = 0,
-          billete_10000 = 0,
-          billete_5000 = 0,
-          billete_1000 = 0,
-          moneda_1000 = 0,
-          moneda_500 = 0,
-          moneda_200 = 0,
-          moneda_100 = 0,
-          moneda_50 = 0,
-          total_payment = 0,
-          cash_back = 0,
-        } = denominations_to_add;
 
-        let payment =
-          billete_100000 * 100000 +
-          billete_50000 * 50000 +
-          billete_20000 * 20000 +
-          billete_10000 * 10000 +
-          billete_5000 * 5000 +
-          billete_1000 * 1000 +
-          moneda_1000 * 1000 +
-          moneda_500 * 500 +
-          moneda_200 * 200 +
-          moneda_100 * 100 +
-          moneda_50 * 50;
-
-        let cashback = payment - total_payment;
-
-        if (cashback < 0) {
-          return conn.rollback(function () {
-            conn.end();
-            reject(
-              "Petición errónea, los billetes enviados suman un monto menor al pago requerido"
-            );
-          });
-        }
+        let movement_params = {
+          payment: operationData.total_payment,
+          cash_back: operationData.cash_back,
+          operations_id: 1,
+        };
         conn.query(
-          `SELECT id, quantity, value, denomination
-          FROM cashbox
-          ORDER BY id;`,
+          `INSERT INTO movements SET ?`,
+          movement_params,
           function (error, results, fields) {
             if (error) {
               return conn.rollback(function () {
@@ -315,17 +282,160 @@ class MySQLDAO {
                 reject(error);
               });
             }
-            let cashbox = results;
 
-            let movement_params = {
-              payment: total_payment,
-              cash_back: cash_back,
-              operations_id: 1,
-            };
-            conn.query(
-              `INSERT INTO movements SET ?`,
-              movement_params,
-              function (error, results, fields) {
+            let cashbackAux = Number(operationData.cashback);
+            let cashbackQuantity = 0;
+            let cashback_returned = [];
+
+            for (let i = 0; i < cashbox.length; i++) {
+              if (
+                cashbox[i].value <= cashbackAux &&
+                Number(cashbox[i].quantity) > 0
+              ) {
+                cashbackQuantity =
+                  cashbackAux / cashbox[i].value -
+                  (cashbackAux % cashbox[i].value) / cashbox[i].value;
+
+                if (cashbackQuantity <= cashbox[i].quantity) {
+                  cashbox[i].subtracted = Number(cashbackQuantity);
+                  cashbox[i].quantity =
+                    Number(cashbox[i].quantity) - Number(cashbackQuantity);
+                  cashbackAux =
+                    Number(cashbackAux) -
+                    Number(cashbox[i].value) * Number(cashbackQuantity);
+                  cashback_returned.push({
+                    bill: `${cashbox[i].denomination}`,
+                    value: `${cashbox[i].value}`,
+                    quantity: cashbackQuantity,
+                  });
+                } else {
+                  cashbox[i].subtracted = cashbox[i].quantity;
+                  cashbox[i].quantity = 0;
+                  cashbackAux =
+                    Number(cashbackAux) -
+                    Number(cashbox[i].value) * Number(cashbox[i].quantity);
+                  cashback_returned.push({
+                    bill: `${cashbox[i].denomination}`,
+                    value: `${cashbox[i].value}`,
+                    quantity: cashbox[i].quantity,
+                  });
+                }
+
+                if (cashbackAux == 0) {
+                  break;
+                }
+              }
+            }
+
+            if (cashbackAux > 0) {
+              return conn.rollback(function () {
+                conn.end();
+                reject(
+                  "No se tiene cambio para el pago y la combinación de billetes"
+                );
+              });
+            }
+
+            let movement_id = results.insertId;
+            let cashbox_query = `UPDATE cashbox SET quantity = CASE id
+                 WHEN 1 THEN ${
+                   Number(cashbox[0].quantity) +
+                   Number(operationData.billete_100000)
+                 } 
+                 WHEN 2 THEN ${
+                   Number(cashbox[1].quantity) +
+                   Number(operationData.billete_50000)
+                 }
+                 WHEN 3 THEN ${
+                   Number(cashbox[2].quantity) +
+                   Number(operationData.billete_20000)
+                 } 
+                 WHEN 4 THEN ${
+                   Number(cashbox[3].quantity) +
+                   Number(operationData.billete_10000)
+                 }
+                 WHEN 5 THEN ${
+                   Number(cashbox[4].quantity) +
+                   Number(operationData.billete_5000)
+                 } 
+                 WHEN 6 THEN ${
+                   Number(cashbox[5].quantity) +
+                   Number(operationData.billete_1000)
+                 }
+                 WHEN 7 THEN ${
+                   Number(cashbox[6].quantity) +
+                   Number(operationData.moneda_1000)
+                 } 
+                 WHEN 8 THEN ${
+                   Number(cashbox[7].quantity) +
+                   Number(operationData.moneda_500)
+                 }
+                 WHEN 9 THEN ${
+                   Number(cashbox[8].quantity) +
+                   Number(operationData.moneda_200)
+                 } 
+                 WHEN 10 THEN ${
+                   Number(cashbox[9].quantity) +
+                   Number(operationData.moneda_100)
+                 }
+                 WHEN 11 THEN ${
+                   Number(cashbox[10].quantity) +
+                   Number(operationData.moneda_50)
+                 }
+                 ELSE quantity
+                 END
+                 WHERE id IN(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);`;
+
+            conn.query(cashbox_query, function (error, results, fields) {
+              if (error) {
+                return conn.rollback(function () {
+                  conn.end();
+                  reject(error);
+                });
+              }
+
+              let insertQuery =
+                "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
+
+              let parameters = "";
+
+              let denominations_array = [
+                operationData.billete_100000,
+                operationData.billete_50000,
+                operationData.billete_20000,
+                operationData.billete_10000,
+                operationData.billete_5000,
+                operationData.billete_1000,
+                operationData.moneda_1000,
+                operationData.moneda_500,
+                operationData.moneda_200,
+                operationData.moneda_100,
+                operationData.moneda_50,
+              ];
+
+              for (let i = 0; i < 11; i++) {
+                if (denominations_array[i] !== 0) {
+                  parameters += ` (${movement_id}, ${i + 1}, ${
+                    denominations_array[i]
+                  }, 1 ),`;
+                }
+              }
+
+              for (let i = 0; i < 11; i++) {
+                if (
+                  denominations_array[i] !== 0 &&
+                  cashbox[i].subtracted != 0
+                ) {
+                  parameters += ` (${movement_id}, ${i + 1}, ${
+                    cashbox[i].subtracted
+                  }, 2 ),`;
+                }
+              }
+
+              insertQuery += parameters;
+              insertQuery = insertQuery.replace(/.$/, ";");
+
+              conn.query(insertQuery, function (error, results, fields) {
                 if (error) {
                   return conn.rollback(function () {
                     conn.end();
@@ -333,166 +443,22 @@ class MySQLDAO {
                   });
                 }
 
-                let cashbackAux = Number(cashback);
-                let cashbackQuantity = 0;
-                let cashback_returned = [];
-
-                for (let i = 0; i < cashbox.length; i++) {
-                  if (
-                    cashbox[i].value <= cashbackAux &&
-                    Number(cashbox[i].quantity) > 0
-                  ) {
-                    cashbackQuantity =
-                      cashbackAux / cashbox[i].value -
-                      (cashbackAux % cashbox[i].value) / cashbox[i].value;
-
-                    if (cashbackQuantity <= cashbox[i].quantity) {
-                      cashbox[i].quantity =
-                        Number(cashbox[i].quantity) - Number(cashbackQuantity);
-                      cashbackAux =
-                        Number(cashbackAux) -
-                        Number(cashbox[i].value) * Number(cashbackQuantity);
-                      cashback_returned.push({
-                        bill: `${cashbox[i].denomination}`,
-                        value: `${cashbox[i].value}`,
-                        quantity: cashbackQuantity,
-                      });
-                    } else {
-                      cashbox[i].quantity = 0;
-                      cashbackAux =
-                        Number(cashbackAux) -
-                        Number(cashbox[i].value) * Number(cashbox[i].quantity);
-                      cashback_returned.push({
-                        bill: `${cashbox[i].denomination}`,
-                        value: `${cashbox[i].value}`,
-                        quantity: cashbox[i].quantity,
-                      });
-                    }
-
-                    if (cashbackAux == 0) {
-                      break;
-                    }
-                  }
-                }
-
-                if (cashbackAux > 0) {
-                  return conn.rollback(function () {
-                    conn.end();
-                    reject(
-                      "No se tiene cambio para el pago y la combinación de billetes"
-                    );
-                  });
-                }
-
-                let movement_id = results.insertId;
-                let cashbox_query = `UPDATE cashbox SET quantity = CASE id
-                 WHEN 1 THEN ${
-                   Number(cashbox[0].quantity) + Number(billete_100000)
-                 } 
-                 WHEN 2 THEN ${
-                   Number(cashbox[1].quantity) + Number(billete_50000)
-                 }
-                 WHEN 3 THEN ${
-                   Number(cashbox[2].quantity) + Number(billete_20000)
-                 } 
-                 WHEN 4 THEN ${
-                   Number(cashbox[3].quantity) + Number(billete_10000)
-                 }
-                 WHEN 5 THEN ${
-                   Number(cashbox[4].quantity) + Number(billete_5000)
-                 } 
-                 WHEN 6 THEN ${
-                   Number(cashbox[5].quantity) + Number(billete_1000)
-                 }
-                 WHEN 7 THEN ${
-                   Number(cashbox[6].quantity) + Number(moneda_1000)
-                 } 
-                 WHEN 8 THEN ${Number(cashbox[7].quantity) + Number(moneda_500)}
-                 WHEN 9 THEN ${
-                   Number(cashbox[8].quantity) + Number(moneda_200)
-                 } 
-                 WHEN 10 THEN ${
-                   Number(cashbox[9].quantity) + Number(moneda_100)
-                 }
-                 WHEN 11 THEN ${
-                   Number(cashbox[10].quantity) + Number(moneda_50)
-                 }
-                 ELSE quantity
-                 END
-                 WHERE id IN(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);`;
-
-                conn.query(cashbox_query, function (error, results, fields) {
-                  if (error) {
+                conn.commit(function (err) {
+                  if (err) {
                     return conn.rollback(function () {
                       conn.end();
-                      reject(error);
+                      reject(err);
                     });
                   }
-
-                  let insertQuery =
-                    "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
-
-                  let parameters = "";
-
-                  let denominations_array = [
-                    billete_100000,
-                    billete_50000,
-                    billete_20000,
-                    billete_10000,
-                    billete_5000,
-                    billete_1000,
-                    moneda_1000,
-                    moneda_500,
-                    moneda_200,
-                    moneda_100,
-                    moneda_50,
-                  ];
-
-                  for (let i = 0; i < 11; i++) {
-                    if (denominations_array[i] !== 0) {
-                      parameters += ` (${movement_id}, ${i + 1}, ${
-                        denominations_array[i]
-                      }, 1 ),`;
-                    }
-                  }
-
-                  for (let i = 0; i < 11; i++) {
-                    if (denominations_array[i] !== 0) {
-                      parameters += ` (${movement_id}, ${i + 1}, ${
-                        cashbox[i].quantity
-                      }, 2 ),`;
-                    }
-                  }
-
-                  insertQuery += parameters;
-                  insertQuery = insertQuery.replace(/.$/, ";");
-
-                  conn.query(insertQuery, function (error, results, fields) {
-                    if (error) {
-                      return conn.rollback(function () {
-                        conn.end();
-                        reject(error);
-                      });
-                    }
-
-                    conn.commit(function (err) {
-                      if (err) {
-                        return conn.rollback(function () {
-                          conn.end();
-                          reject(err);
-                        });
-                      }
-                      conn.end();
-                      let response = {
-                        cashback: cashback_returned,
-                        text: "Pago registrado correctamente",
-                      };
-                      resolve(response);
-                    });
-                  });
+                  conn.end();
+                  let response = {
+                    cashback: cashback_returned,
+                    text: "Pago registrado correctamente",
+                  };
+                  resolve(response);
                 });
-              }
-            );
+              });
+            });
           }
         );
       });
@@ -537,6 +503,21 @@ class MySQLDAO {
         `SELECT id, quantity
         FROM cashbox
         WHERE quantity > 0
+        ORDER BY id;`,
+        function (error, results) {
+          if (error) reject(error);
+          resolve(results);
+        }
+      );
+    });
+  }
+
+  getAllDenominationsCurrentQuantity() {
+    let conn = this.connection;
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `SELECT id, quantity, value, denomination, 0 AS subtracted
+        FROM cashbox
         ORDER BY id;`,
         function (error, results) {
           if (error) reject(error);
