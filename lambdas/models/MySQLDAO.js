@@ -152,20 +152,7 @@ class MySQLDAO {
     });
   }
 
-  setCashBoxBase(denominations_to_add) {
-    const {
-      billete_100000 = 0,
-      billete_50000 = 0,
-      billete_20000 = 0,
-      billete_10000 = 0,
-      billete_5000 = 0,
-      billete_1000 = 0,
-      moneda_1000 = 0,
-      moneda_500 = 0,
-      moneda_200 = 0,
-      moneda_100 = 0,
-      moneda_50 = 0,
-    } = denominations_to_add;
+  setCashBoxBase(denominations_to_add, operationData) {
     let conn = this.connection;
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
@@ -173,21 +160,8 @@ class MySQLDAO {
           conn.end();
           reject(err);
         }
-
-        let payment =
-          billete_100000 * 100000 +
-          billete_50000 * 50000 +
-          billete_20000 * 20000 +
-          billete_10000 * 10000 +
-          billete_5000 * 5000 +
-          billete_1000 * 1000 +
-          moneda_1000 * 1000 +
-          moneda_500 * 500 +
-          moneda_200 * 200 +
-          moneda_100 * 100 +
-          moneda_50 * 50;
         let movement_params = {
-          payment: payment,
+          payment: operationData.payment,
           cash_back: 0,
           operations_id: 2,
         };
@@ -204,17 +178,17 @@ class MySQLDAO {
 
             let movement_id = results.insertId;
             let casbox_query = `UPDATE cashbox SET quantity = CASE id
-                 WHEN 1 THEN ${billete_100000} 
-                 WHEN 2 THEN ${billete_50000}
-                 WHEN 3 THEN ${billete_20000} 
-                 WHEN 4 THEN ${billete_10000}
-                 WHEN 5 THEN ${billete_5000} 
-                 WHEN 6 THEN ${billete_1000}
-                 WHEN 7 THEN ${moneda_1000} 
-                 WHEN 8 THEN ${moneda_500}
-                 WHEN 9 THEN ${moneda_200} 
-                 WHEN 10 THEN ${moneda_100}
-                 WHEN 11 THEN ${moneda_50}
+                 WHEN 1 THEN ${operationData.billete_100000} 
+                 WHEN 2 THEN ${operationData.billete_50000}
+                 WHEN 3 THEN ${operationData.billete_20000} 
+                 WHEN 4 THEN ${operationData.billete_10000}
+                 WHEN 5 THEN ${operationData.billete_5000} 
+                 WHEN 6 THEN ${operationData.billete_1000}
+                 WHEN 7 THEN ${operationData.moneda_1000} 
+                 WHEN 8 THEN ${operationData.moneda_500}
+                 WHEN 9 THEN ${operationData.moneda_200} 
+                 WHEN 10 THEN ${operationData.moneda_100}
+                 WHEN 11 THEN ${operationData.moneda_50}
                  ELSE quantity
                  END
                  WHERE id IN(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);`;
@@ -233,17 +207,17 @@ class MySQLDAO {
               let parameters = "";
 
               let denominations_array = [
-                billete_100000,
-                billete_50000,
-                billete_20000,
-                billete_10000,
-                billete_5000,
-                billete_1000,
-                moneda_1000,
-                moneda_500,
-                moneda_200,
-                moneda_100,
-                moneda_50,
+                operationData.billete_100000,
+                operationData.billete_50000,
+                operationData.billete_20000,
+                operationData.billete_10000,
+                operationData.billete_5000,
+                operationData.billete_1000,
+                operationData.moneda_1000,
+                operationData.moneda_500,
+                operationData.moneda_200,
+                operationData.moneda_100,
+                operationData.moneda_50,
               ];
 
               for (let i = 0; i < 11; i++) {

@@ -30,7 +30,7 @@ exports.handler = async (event) => {
   } else {
     response = {
       statusCode: 200,
-      body: JSON.stringify({ results: "Holiiiiiii bety bety" }),
+      body: JSON.stringify({ results: "La caja ya se encuentra vacía." }),
     };
   }
 
