@@ -2,6 +2,7 @@
 !lambdas/**
 !test/*
 !jest.config.js
+!test_database_credentials.js
 *.d.ts
 node_modules
 
