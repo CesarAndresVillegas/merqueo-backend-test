@@ -3,9 +3,11 @@ const MySQLDAO = require("../models/MySQLDAO");
 exports.handler = async (event) => {
   let response = {};
   const body = JSON.parse(event.body);
-  const operationData = getOperationData(body);
+  const operationData = await getOperationData(body);
   let MySQLDAOInstance = new MySQLDAO();
-  let currentDenominations = await MySQLDAOInstance.getCurrentDenominations();
+  let currentDenominations = await MySQLDAOInstance.getCurrentDenominations(
+    operationData
+  );
   if (currentDenominations.length == 0) {
     await MySQLDAOInstance.setCashBoxBase(operationData)
       .then(
