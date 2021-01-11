@@ -8,7 +8,7 @@ exports.handler = async (event) => {
   console.log("**************************");
   let MySQLDAOInstance = new MySQLDAO();
   let currentDenominations = await MySQLDAOInstance.getCurrentDenominations();
-  if (currentDenominations.length) {
+  if (currentDenominations.length > 0) {
     await MySQLDAOInstance.setCashBoxBase(body)
       .then(
         (result) => {
