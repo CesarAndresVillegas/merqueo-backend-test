@@ -2,41 +2,53 @@ const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
   let response = {};
-  const body = JSON.parse(event.body);
-  const operationData = await getOperationData(body);
-  let MySQLDAOInstance = new MySQLDAO();
-  let currentDenominations = await MySQLDAOInstance.getCurrentDenominations(
-    operationData
-  );
-  if (currentDenominations.length == 0) {
-    await MySQLDAOInstance.setCashBoxBase(operationData)
-      .then(
-        (result) => {
+  let MySQLDAOInstance;
+  try {
+    const body = JSON.parse(event.body);
+    const operationData = await getOperationData(body);
+    MySQLDAOInstance = new MySQLDAO();
+    let currentDenominations = await MySQLDAOInstance.getCurrentDenominations(
+      operationData
+    );
+    if (currentDenominations.length == 0) {
+      await MySQLDAOInstance.setCashBoxBase(operationData)
+        .then(
+          (result) => {
+            response = {
+              statusCode: 200,
+              body: JSON.stringify({ results: result }),
+            };
+          },
+          (err) => {
+            response = {
+              statusCode: 401,
+              body: JSON.stringify({ results: err }),
+            };
+          }
+        )
+        .catch((except) => {
           response = {
-            statusCode: 200,
-            body: JSON.stringify({ results: result }),
+            statusCode: 501,
+            body: JSON.stringify({ results: except }),
           };
-        },
-        (err) => {
-          response = {
-            statusCode: 401,
-            body: JSON.stringify({ results: err }),
-          };
-        }
-      )
-      .catch((except) => {
-        response = {
-          statusCode: 501,
-          body: JSON.stringify({ results: except }),
-        };
-      });
-  } else {
+        });
+    } else {
+      response = {
+        statusCode: 200,
+        body: JSON.stringify({
+          results: "La caja debe estar vacía para poder establecer una base",
+        }),
+      };
+    }
+  } catch (error) {
     response = {
-      statusCode: 200,
-      body: JSON.stringify({
-        results: "La caja debe estar vacía para poder establecer una base",
-      }),
+      statusCode: 500,
+      body: JSON.stringify({ results: error }),
     };
+  }
+
+  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+    MySQLDAOInstance.connection.end();
   }
 
   return response;
