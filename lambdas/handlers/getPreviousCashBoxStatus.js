@@ -1,5 +1,5 @@
 const MySQLDAO = require("../models/MySQLDAO");
-let cashboxStatus = require("../helpers/variables");
+const cashboxStatus = require("../helpers/variables");
 
 exports.handler = async (event) => {
   let response = {};
@@ -14,11 +14,13 @@ exports.handler = async (event) => {
         queryDate
       );
 
-      let chashBoxOnSpecificDate = getDataFromHistorical(resultBody);
+      let cashBoxOnSpecificDate = await getDataFromHistorical(
+        JSON.parse(resultBody.body).results
+      );
 
       response = {
         statusCode: 200,
-        body: JSON.stringify({ results: chashBoxOnSpecificDate }),
+        body: JSON.stringify({ results: cashBoxOnSpecificDate }),
       };
     } else {
       response = {
@@ -51,6 +53,7 @@ const formatedDate = async (datoToValidate) => {
 
 const getDataFromHistorical = async (historicalData) => {
   let reArrangedArray = [];
+  let currentStatus = {};
 
   for (let i = 0; i < historicalData.length; i++) {
     if (historicalData[i].operations_id == 3) {
@@ -62,15 +65,26 @@ const getDataFromHistorical = async (historicalData) => {
 
   for (let i = reArrangedArray.length - 1; i >= 0; i--) {
     if (reArrangedArray[i].detail_operation_id == 1) {
-      cashboxStatus[reArrangedArray[i].denomination] += Number(
-        reArrangedArray[i].quantity
-      );
+      if (currentStatus[reArrangedArray[i].denomination]) {
+        currentStatus[reArrangedArray[i].denomination] += Number(
+          reArrangedArray[i].quantity
+        );
+      } else {
+        currentStatus[`${reArrangedArray[i].denomination}`] = Number(
+          reArrangedArray[i].quantity
+        );
+      }
     } else {
-      cashboxStatus[reArrangedArray[i].denomination] -= Number(
-        reArrangedArray[i].quantity
-      );
+      if (
+        currentStatus[reArrangedArray[i].denomination] >=
+        Number(reArrangedArray[i].quantity)
+      ) {
+        currentStatus[reArrangedArray[i].denomination] -= Number(
+          reArrangedArray[i].quantity
+        );
+      }
     }
   }
 
-  return reArrangedArray;
+  return currentStatus;
 };
