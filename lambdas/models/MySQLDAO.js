@@ -82,7 +82,8 @@ class MySQLDAO {
     });
   }
 
-  emptyCashBox() {
+  emptyCashBox(denominations) {
+    const size = denominations.length;
     let conn = this.connection;
     return new Promise((resolve, reject) => {
       conn.beginTransaction(function (err) {
@@ -90,11 +91,9 @@ class MySQLDAO {
           conn.end();
           reject(err);
         }
+
         conn.query(
-          `SELECT id, quantity
-          FROM cashbox
-          WHERE quantity > 0
-          ORDER BY id;`,
+          `INSERT INTO movements (payment, cash_back, operations_id) VALUES (0, 0, 3)`,
           function (error, results, fields) {
             if (error) {
               return conn.rollback(function () {
@@ -102,25 +101,10 @@ class MySQLDAO {
                 reject(error);
               });
             }
-            let denominations_to_register = { results: results };
-            const denominations = denominations_to_register.results;
-            const size = denominations.length;
+            let movement_id = results.insertId;
 
-            if (size == 0) {
-              return conn.rollback(function () {
-                conn.end();
-                reject("La caja se encuentra vacía");
-              });
-            }
-
-            let movement_params = {
-              payment: 0,
-              cash_back: 0,
-              operations_id: 3,
-            };
             conn.query(
-              `INSERT INTO movements SET ?`,
-              movement_params,
+              `UPDATE cashbox SET quantity = 0`,
               function (error, results, fields) {
                 if (error) {
                   return conn.rollback(function () {
@@ -128,51 +112,38 @@ class MySQLDAO {
                     reject(error);
                   });
                 }
-                let movement_id = results.insertId;
 
-                conn.query(
-                  `UPDATE cashbox SET quantity = 0`,
-                  function (error, results, fields) {
-                    if (error) {
-                      return conn.rollback(function () {
-                        conn.end();
-                        reject(error);
-                      });
-                    }
+                let insertQuery =
+                  "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
 
-                    let insertQuery =
-                      "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
+                let parameters = "";
 
-                    let parameters = "";
+                for (let i = 0; i < size; i++) {
+                  parameters += ` (${movement_id}, ${denominations[i].id}, ${denominations[i].quantity}, 2 ),`;
+                }
 
-                    for (let i = 0; i < size; i++) {
-                      parameters += ` (${movement_id}, ${denominations[i].id}, ${denominations[i].quantity}, 2 ),`;
-                    }
+                insertQuery += parameters;
+                insertQuery = insertQuery.replace(/.$/, ";");
 
-                    insertQuery += parameters;
-                    insertQuery = insertQuery.replace(/.$/, ";");
-
-                    conn.query(insertQuery, function (error, results, fields) {
-                      if (error) {
-                        return conn.rollback(function () {
-                          conn.end();
-                          reject(error);
-                        });
-                      }
-
-                      conn.commit(function (err) {
-                        if (err) {
-                          return conn.rollback(function () {
-                            conn.end();
-                            reject(err);
-                          });
-                        }
-                        conn.end();
-                        resolve("La caja se vació correctamente");
-                      });
+                conn.query(insertQuery, function (error, results, fields) {
+                  if (error) {
+                    return conn.rollback(function () {
+                      conn.end();
+                      reject(error);
                     });
                   }
-                );
+
+                  conn.commit(function (err) {
+                    if (err) {
+                      return conn.rollback(function () {
+                        conn.end();
+                        reject(err);
+                      });
+                    }
+                    conn.end();
+                    resolve("La caja se vació correctamente");
+                  });
+                });
               }
             );
           }
@@ -202,11 +173,27 @@ class MySQLDAO {
           conn.end();
           reject(err);
         }
+
+        let payment =
+          billete_100000 * 100000 +
+          billete_50000 * 50000 +
+          billete_20000 * 20000 +
+          billete_10000 * 10000 +
+          billete_5000 * 5000 +
+          billete_1000 * 1000 +
+          moneda_1000 * 1000 +
+          moneda_500 * 500 +
+          moneda_200 * 200 +
+          moneda_100 * 100 +
+          moneda_50 * 50;
+        let movement_params = {
+          payment: payment,
+          cash_back: 0,
+          operations_id: 2,
+        };
         conn.query(
-          `SELECT id, quantity
-          FROM cashbox
-          WHERE quantity > 0
-          ORDER BY id;`,
+          `INSERT INTO movements SET ?`,
+          movement_params,
           function (error, results, fields) {
             if (error) {
               return conn.rollback(function () {
@@ -214,47 +201,9 @@ class MySQLDAO {
                 reject(error);
               });
             }
-            let denominations_to_register = { results: results };
-            const denominations = denominations_to_register.results;
-            const size = denominations.length;
 
-            if (size > 0) {
-              return conn.rollback(function () {
-                conn.end();
-                reject("Para establecer una base la caja debe estar limpia");
-              });
-            }
-
-            let payment =
-              billete_100000 * 100000 +
-              billete_50000 * 50000 +
-              billete_20000 * 20000 +
-              billete_10000 * 10000 +
-              billete_5000 * 5000 +
-              billete_1000 * 1000 +
-              moneda_1000 * 1000 +
-              moneda_500 * 500 +
-              moneda_200 * 200 +
-              moneda_100 * 100 +
-              moneda_50 * 50;
-            let movement_params = {
-              payment: payment,
-              cash_back: 0,
-              operations_id: 2,
-            };
-            conn.query(
-              `INSERT INTO movements SET ?`,
-              movement_params,
-              function (error, results, fields) {
-                if (error) {
-                  return conn.rollback(function () {
-                    conn.end();
-                    reject(error);
-                  });
-                }
-
-                let movement_id = results.insertId;
-                let casbox_query = `UPDATE cashbox SET quantity = CASE id
+            let movement_id = results.insertId;
+            let casbox_query = `UPDATE cashbox SET quantity = CASE id
                  WHEN 1 THEN ${billete_100000} 
                  WHEN 2 THEN ${billete_50000}
                  WHEN 3 THEN ${billete_20000} 
@@ -270,66 +219,64 @@ class MySQLDAO {
                  END
                  WHERE id IN(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);`;
 
-                conn.query(casbox_query, function (error, results, fields) {
-                  if (error) {
-                    return conn.rollback(function () {
-                      conn.end();
-                      reject(error);
-                    });
-                  }
-
-                  let insertQuery =
-                    "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
-
-                  let parameters = "";
-
-                  let denominations_array = [
-                    billete_100000,
-                    billete_50000,
-                    billete_20000,
-                    billete_10000,
-                    billete_5000,
-                    billete_1000,
-                    moneda_1000,
-                    moneda_500,
-                    moneda_200,
-                    moneda_100,
-                    moneda_50,
-                  ];
-
-                  for (let i = 0; i < 11; i++) {
-                    if (denominations_array[i] !== 0) {
-                      parameters += ` (${movement_id}, ${i + 1}, ${
-                        denominations_array[i]
-                      }, 1 ),`;
-                    }
-                  }
-
-                  insertQuery += parameters;
-                  insertQuery = insertQuery.replace(/.$/, ";");
-
-                  conn.query(insertQuery, function (error, results, fields) {
-                    if (error) {
-                      return conn.rollback(function () {
-                        conn.end();
-                        reject(error);
-                      });
-                    }
-
-                    conn.commit(function (err) {
-                      if (err) {
-                        return conn.rollback(function () {
-                          conn.end();
-                          reject(err);
-                        });
-                      }
-                      conn.end();
-                      resolve("Se estableció correctamente la base");
-                    });
-                  });
+            conn.query(casbox_query, function (error, results, fields) {
+              if (error) {
+                return conn.rollback(function () {
+                  conn.end();
+                  reject(error);
                 });
               }
-            );
+
+              let insertQuery =
+                "INSERT INTO movements_details (movements_id, cashbox_id, quantity, detail_operation_id) VALUES";
+
+              let parameters = "";
+
+              let denominations_array = [
+                billete_100000,
+                billete_50000,
+                billete_20000,
+                billete_10000,
+                billete_5000,
+                billete_1000,
+                moneda_1000,
+                moneda_500,
+                moneda_200,
+                moneda_100,
+                moneda_50,
+              ];
+
+              for (let i = 0; i < 11; i++) {
+                if (denominations_array[i] !== 0) {
+                  parameters += ` (${movement_id}, ${i + 1}, ${
+                    denominations_array[i]
+                  }, 1 ),`;
+                }
+              }
+
+              insertQuery += parameters;
+              insertQuery = insertQuery.replace(/.$/, ";");
+
+              conn.query(insertQuery, function (error, results, fields) {
+                if (error) {
+                  return conn.rollback(function () {
+                    conn.end();
+                    reject(error);
+                  });
+                }
+
+                conn.commit(function (err) {
+                  if (err) {
+                    return conn.rollback(function () {
+                      conn.end();
+                      reject(err);
+                    });
+                  }
+                  conn.end();
+                  resolve("Se estableció correctamente la base");
+                });
+              });
+            });
           }
         );
       });
@@ -604,6 +551,22 @@ class MySQLDAO {
             body: JSON.stringify({ results: results }),
           };
           resolve(response);
+        }
+      );
+    });
+  }
+
+  getCurrentDenominations() {
+    let conn = this.connection;
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `SELECT id, quantity
+        FROM cashbox
+        WHERE quantity > 0
+        ORDER BY id;`,
+        function (error, results) {
+          if (error) reject(error);
+          resolve(results);
         }
       );
     });
