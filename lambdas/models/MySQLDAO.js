@@ -4,14 +4,12 @@ let MySQLInstance;
 
 class MySQLDAO {
   constructor() {
-    this.connection = this.createConnection();
-    /*
     if (!MySQLInstance && this.connection.status) {
       MySQLInstance = this;
       this.connection = this.createConnection();
     } else {
       return MySQLInstance;
-    }*/
+    }
   }
 
   createConnection() {
