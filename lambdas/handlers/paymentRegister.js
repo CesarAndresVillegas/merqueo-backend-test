@@ -11,12 +11,7 @@ exports.handler = async (event) => {
       currentPayment,
       currentDenominations
     );
-    console.log("********************************");
-    console.log("********************************");
-    console.log(currentDenominations);
-    console.log("********************************");
-    console.log("********************************");
-    await MySQLDAOInstance.paymentRegister(currentPayment, currentDenominations)
+    await MySQLDAOInstance.paymentRegister(currentPayment, currentCashbox)
       .then(
         (result) => {
           response = {
@@ -98,5 +93,11 @@ const getOperationData = async (body) => {
 };
 
 const formatPayment = async (currentPayment, currentDenominations) => {
-  return true;
+  for (let i = 0; i < currentDenominations.length; i++) {
+    currentDenominations[i].quantity =
+      Number(currentDenominations[i].quantity) +
+      Number(currentPayment[currentDenominations[i].denomination]);
+  }
+
+  return currentDenominations;
 };
