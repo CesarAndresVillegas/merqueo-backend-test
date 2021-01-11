@@ -283,7 +283,7 @@ class MySQLDAO {
               });
             }
 
-            let cashbackAux = Number(operationData.cashback);
+            let cashbackAux = Number(operationData.cash_back);
             let cashbackQuantity = 0;
             let cashback_returned = [];
 
@@ -338,50 +338,17 @@ class MySQLDAO {
 
             let movement_id = results.insertId;
             let cashbox_query = `UPDATE cashbox SET quantity = CASE id
-                 WHEN 1 THEN ${
-                   Number(cashbox[0].quantity) +
-                   Number(operationData.billete_100000)
-                 } 
-                 WHEN 2 THEN ${
-                   Number(cashbox[1].quantity) +
-                   Number(operationData.billete_50000)
-                 }
-                 WHEN 3 THEN ${
-                   Number(cashbox[2].quantity) +
-                   Number(operationData.billete_20000)
-                 } 
-                 WHEN 4 THEN ${
-                   Number(cashbox[3].quantity) +
-                   Number(operationData.billete_10000)
-                 }
-                 WHEN 5 THEN ${
-                   Number(cashbox[4].quantity) +
-                   Number(operationData.billete_5000)
-                 } 
-                 WHEN 6 THEN ${
-                   Number(cashbox[5].quantity) +
-                   Number(operationData.billete_1000)
-                 }
-                 WHEN 7 THEN ${
-                   Number(cashbox[6].quantity) +
-                   Number(operationData.moneda_1000)
-                 } 
-                 WHEN 8 THEN ${
-                   Number(cashbox[7].quantity) +
-                   Number(operationData.moneda_500)
-                 }
-                 WHEN 9 THEN ${
-                   Number(cashbox[8].quantity) +
-                   Number(operationData.moneda_200)
-                 } 
-                 WHEN 10 THEN ${
-                   Number(cashbox[9].quantity) +
-                   Number(operationData.moneda_100)
-                 }
-                 WHEN 11 THEN ${
-                   Number(cashbox[10].quantity) +
-                   Number(operationData.moneda_50)
-                 }
+                 WHEN 1 THEN ${Number(cashbox[0].quantity)} 
+                 WHEN 2 THEN ${Number(cashbox[1].quantity)}
+                 WHEN 3 THEN ${Number(cashbox[2].quantity)} 
+                 WHEN 4 THEN ${Number(cashbox[3].quantity)}
+                 WHEN 5 THEN ${Number(cashbox[4].quantity)} 
+                 WHEN 6 THEN ${Number(cashbox[5].quantity)}
+                 WHEN 7 THEN ${Number(cashbox[6].quantity)} 
+                 WHEN 8 THEN ${Number(cashbox[7].quantity)}
+                 WHEN 9 THEN ${Number(cashbox[8].quantity)} 
+                 WHEN 10 THEN ${Number(cashbox[9].quantity)}
+                 WHEN 11 THEN ${Number(cashbox[10].quantity)}
                  ELSE quantity
                  END
                  WHERE id IN(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);`;
@@ -422,10 +389,7 @@ class MySQLDAO {
               }
 
               for (let i = 0; i < 11; i++) {
-                if (
-                  denominations_array[i] !== 0 &&
-                  cashbox[i].subtracted != 0
-                ) {
+                if (cashbox[i].subtracted != 0) {
                   parameters += ` (${movement_id}, ${i + 1}, ${
                     cashbox[i].subtracted
                   }, 2 ),`;

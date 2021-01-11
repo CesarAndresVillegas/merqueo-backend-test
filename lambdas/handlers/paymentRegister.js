@@ -3,11 +3,20 @@ const MySQLDAO = require("../models/MySQLDAO");
 exports.handler = async (event) => {
   let response = {};
   const body = JSON.parse(event.body);
-  const operationData = await getOperationData(body);
+  const currentPayment = await getOperationData(body);
   let MySQLDAOInstance = new MySQLDAO();
-  if (operationData.cashback < 0) {
-    const currentDenominations = await MySQLDAOInstance.getCurrentDenominations();
-    await MySQLDAOInstance.paymentRegister(operationData, currentDenominations)
+  if (currentPayment.cash_back > 0) {
+    const currentDenominations = await MySQLDAOInstance.getAllDenominationsCurrentQuantity();
+    const currentCashbox = await formatPayment(
+      currentPayment,
+      currentDenominations
+    );
+    console.log("********************************");
+    console.log("********************************");
+    console.log(currentDenominations);
+    console.log("********************************");
+    console.log("********************************");
+    await MySQLDAOInstance.paymentRegister(currentPayment, currentDenominations)
       .then(
         (result) => {
           response = {
@@ -86,4 +95,8 @@ const getOperationData = async (body) => {
     total_payment: total_payment,
     cash_back: payment - total_payment,
   };
+};
+
+const formatPayment = async (currentPayment, currentDenominations) => {
+  return true;
 };
