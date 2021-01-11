@@ -283,59 +283,6 @@ class MySQLDAO {
               });
             }
 
-            let cashbackAux = Number(operationData.cash_back);
-            let cashbackQuantity = 0;
-            let cashback_returned = [];
-
-            for (let i = 0; i < cashbox.length; i++) {
-              if (
-                cashbox[i].value <= cashbackAux &&
-                Number(cashbox[i].quantity) > 0
-              ) {
-                cashbackQuantity =
-                  cashbackAux / cashbox[i].value -
-                  (cashbackAux % cashbox[i].value) / cashbox[i].value;
-
-                if (cashbackQuantity <= cashbox[i].quantity) {
-                  cashbox[i].subtracted = Number(cashbackQuantity);
-                  cashbox[i].quantity =
-                    Number(cashbox[i].quantity) - Number(cashbackQuantity);
-                  cashbackAux =
-                    Number(cashbackAux) -
-                    Number(cashbox[i].value) * Number(cashbackQuantity);
-                  cashback_returned.push({
-                    bill: `${cashbox[i].denomination}`,
-                    value: `${cashbox[i].value}`,
-                    quantity: cashbackQuantity,
-                  });
-                } else {
-                  cashbox[i].subtracted = cashbox[i].quantity;
-                  cashbox[i].quantity = 0;
-                  cashbackAux =
-                    Number(cashbackAux) -
-                    Number(cashbox[i].value) * Number(cashbox[i].quantity);
-                  cashback_returned.push({
-                    bill: `${cashbox[i].denomination}`,
-                    value: `${cashbox[i].value}`,
-                    quantity: cashbox[i].quantity,
-                  });
-                }
-
-                if (cashbackAux == 0) {
-                  break;
-                }
-              }
-            }
-
-            if (cashbackAux > 0) {
-              return conn.rollback(function () {
-                conn.end();
-                reject(
-                  "No se tiene cambio para el pago y la combinación de billetes"
-                );
-              });
-            }
-
             let movement_id = results.insertId;
             let cashbox_query = `UPDATE cashbox SET quantity = CASE id
                  WHEN 1 THEN ${Number(cashbox[0].quantity)} 
@@ -415,11 +362,7 @@ class MySQLDAO {
                     });
                   }
                   conn.end();
-                  let response = {
-                    cashback: cashback_returned,
-                    text: "Pago registrado correctamente",
-                  };
-                  resolve(response);
+                  resolve(true);
                 });
               });
             });
