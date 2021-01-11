@@ -42,7 +42,7 @@ exports.handler = async (event) => {
     };
   }
 
-  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+  if (MySQLDAOInstance && MySQLDAOInstance.connection) {
     MySQLDAOInstance.connection.end();
   }
 
