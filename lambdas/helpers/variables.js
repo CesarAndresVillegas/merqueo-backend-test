@@ -1,4 +1,4 @@
-export const cashboxStatus = {
+exports.cashboxStatus = {
   billete_100000: 0,
   billete_50000: 0,
   billete_20000: 0,
