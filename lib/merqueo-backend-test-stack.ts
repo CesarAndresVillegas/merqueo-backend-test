@@ -75,7 +75,7 @@ export class MerqueoBackendTestStack extends cdk.Stack {
         retryAttempts: 1,
         role: roleMerqueoLambda,
         runtime: lambda.Runtime.NODEJS_12_X,
-        timeout: cdk.Duration.seconds(20),
+        timeout: cdk.Duration.seconds(180),
       }
     );
 

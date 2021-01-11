@@ -2,66 +2,78 @@ const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
   let response = {};
-  const body = JSON.parse(event.body);
-  const currentPayment = await getOperationData(body);
-  let MySQLDAOInstance = new MySQLDAO();
-  if (currentPayment.cash_back > 0) {
-    const currentDenominations = await MySQLDAOInstance.getAllDenominationsCurrentQuantity();
-    const currentCashbox = await formatPayment(
-      currentPayment,
-      currentDenominations
-    );
-    let requiredValues = await formatedValues(currentPayment, currentCashbox);
+  let MySQLDAOInstance;
+  try {
+    const body = JSON.parse(event.body);
+    const currentPayment = await getOperationData(body);
+    MySQLDAOInstance = new MySQLDAO();
+    if (currentPayment.cash_back > 0) {
+      const currentDenominations = await MySQLDAOInstance.getAllDenominationsCurrentQuantity();
+      const currentCashbox = await formatPayment(
+        currentPayment,
+        currentDenominations
+      );
+      let requiredValues = await formatedValues(currentPayment, currentCashbox);
 
-    let cashboxAfterPayment = requiredValues[0];
-    let cashbackDenominationsReturned = requiredValues[1];
-    let cashbackResidue = requiredValues[2];
+      let cashboxAfterPayment = requiredValues[0];
+      let cashbackDenominationsReturned = requiredValues[1];
+      let cashbackResidue = requiredValues[2];
 
-    if (cashbackResidue > 0) {
+      if (cashbackResidue > 0) {
+        response = {
+          statusCode: 200,
+          body: JSON.stringify({
+            results:
+              "No se tiene cambio para el pago y la combinación de billetes",
+          }),
+        };
+      } else {
+        await MySQLDAOInstance.paymentRegister(
+          currentPayment,
+          cashboxAfterPayment
+        )
+          .then(
+            (result) => {
+              response = {
+                statusCode: 200,
+                body: JSON.stringify({
+                  results: cashbackDenominationsReturned,
+                  text: "Pago registrado correctamente",
+                }),
+              };
+            },
+            (err) => {
+              response = {
+                statusCode: 401,
+                body: JSON.stringify({ results: err }),
+              };
+            }
+          )
+          .catch((except) => {
+            response = {
+              statusCode: 501,
+              body: JSON.stringify({ results: except }),
+            };
+          });
+      }
+    } else {
       response = {
         statusCode: 200,
         body: JSON.stringify({
           results:
-            "No se tiene cambio para el pago y la combinación de billetes",
+            "Petición errónea, los billetes enviados suman un monto menor al pago requerido",
         }),
       };
-    } else {
-      await MySQLDAOInstance.paymentRegister(
-        currentPayment,
-        cashboxAfterPayment
-      )
-        .then(
-          (result) => {
-            response = {
-              statusCode: 200,
-              body: JSON.stringify({
-                results: cashbackDenominationsReturned,
-                text: "Pago registrado correctamente",
-              }),
-            };
-          },
-          (err) => {
-            response = {
-              statusCode: 401,
-              body: JSON.stringify({ results: err }),
-            };
-          }
-        )
-        .catch((except) => {
-          response = {
-            statusCode: 501,
-            body: JSON.stringify({ results: except }),
-          };
-        });
     }
-  } else {
+  } catch (error) {
     response = {
-      statusCode: 200,
-      body: JSON.stringify({
-        results:
-          "Petición errónea, los billetes enviados suman un monto menor al pago requerido",
-      }),
+      statusCode: 500,
+      body: JSON.stringify({ results: error }),
     };
+  }
+
+  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+    MySQLDAOInstance.connection.end();
   }
 
   return response;

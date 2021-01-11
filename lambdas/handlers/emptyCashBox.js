@@ -2,36 +2,48 @@ const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
   let response = {};
-  let MySQLDAOInstance = new MySQLDAO();
-  let currentDenominations = await MySQLDAOInstance.getCurrentDenominations();
+  let MySQLDAOInstance;
 
-  if (currentDenominations.length) {
-    await MySQLDAOInstance.emptyCashBox(currentDenominations)
-      .then(
-        (result) => {
+  try {
+    MySQLDAOInstance = new MySQLDAO();
+    let currentDenominations = await MySQLDAOInstance.getCurrentDenominations();
+    if (currentDenominations.length) {
+      await MySQLDAOInstance.emptyCashBox(currentDenominations)
+        .then(
+          (result) => {
+            response = {
+              statusCode: 200,
+              body: JSON.stringify({ results: result }),
+            };
+          },
+          (err) => {
+            response = {
+              statusCode: 401,
+              body: JSON.stringify({ results: err }),
+            };
+          }
+        )
+        .catch((except) => {
           response = {
-            statusCode: 200,
-            body: JSON.stringify({ results: result }),
+            statusCode: 501,
+            body: JSON.stringify({ results: except }),
           };
-        },
-        (err) => {
-          response = {
-            statusCode: 401,
-            body: JSON.stringify({ results: err }),
-          };
-        }
-      )
-      .catch((except) => {
-        response = {
-          statusCode: 501,
-          body: JSON.stringify({ results: except }),
-        };
-      });
-  } else {
+        });
+    } else {
+      response = {
+        statusCode: 200,
+        body: JSON.stringify({ results: "La caja ya se encuentra vacía." }),
+      };
+    }
+  } catch (error) {
     response = {
-      statusCode: 200,
-      body: JSON.stringify({ results: "La caja ya se encuentra vacía." }),
+      statusCode: 500,
+      body: JSON.stringify({ results: error }),
     };
+  }
+
+  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+    MySQLDAOInstance.connection.end();
   }
 
   return response;

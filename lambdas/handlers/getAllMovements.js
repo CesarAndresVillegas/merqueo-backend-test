@@ -2,8 +2,9 @@ const MySQLDAO = require("../models/MySQLDAO");
 
 exports.handler = async (event) => {
   let response = {};
+  let MySQLDAOInstance;
   try {
-    let MySQLDAOInstance = new MySQLDAO();
+    MySQLDAOInstance = new MySQLDAO();
     let result = await MySQLDAOInstance.getAllMovements();
     response = result;
   } catch (error) {
@@ -11,6 +12,10 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ results: error }),
     };
+  }
+
+  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+    MySQLDAOInstance.connection.end();
   }
 
   return response;

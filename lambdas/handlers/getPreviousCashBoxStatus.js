@@ -3,13 +3,14 @@ const cashboxStatus = require("../helpers/variables");
 
 exports.handler = async (event) => {
   let response = {};
+  let MySQLDAOInstance;
   try {
     let queryDate = await formatedDate(
       event.queryStringParameters.date_required
     );
 
     if (queryDate) {
-      let MySQLDAOInstance = new MySQLDAO();
+      MySQLDAOInstance = new MySQLDAO();
       let resultBody = await MySQLDAOInstance.getPreviousCashBoxStatus(
         queryDate
       );
@@ -35,6 +36,10 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ results: error }),
     };
+  }
+
+  if (MySQLDAOInstance && MySQLDAOInstance.MySQLDAOInstance.connection) {
+    MySQLDAOInstance.connection.end();
   }
 
   return response;
