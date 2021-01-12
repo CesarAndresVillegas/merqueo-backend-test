@@ -1,7 +1,12 @@
-const paymentRegister = require("../../lambdas/handlers/paymentRegister");
+const helperScripts = require("../../lambdas/helpers/helperScripts");
 
-describe("paymentRegister validations", () => {
-  test("getOperationData", async () => {
+describe("helperScripts validations", () => {
+  test("formatDate validation", async () => {
+    const validDate = await helperScripts.formatedDate("2020-01-01");
+    expect(validDate).toBe("2020-01-01 00:00:00");
+  });
+
+  test("getOperationData validation", async () => {
     const inputBodyTest = {
       billete_100000: 3,
       billete_20000: 5,
@@ -26,7 +31,7 @@ describe("paymentRegister validations", () => {
       cash_back: 1300,
     };
 
-    const responseValue = await paymentRegister.getOperationData(inputBodyTest);
+    const responseValue = await helperScripts.getOperationData(inputBodyTest);
     expect(responseValue).toMatchObject(expectedValue);
   });
 });

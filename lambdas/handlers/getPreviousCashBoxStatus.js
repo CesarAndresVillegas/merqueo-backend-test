@@ -1,11 +1,12 @@
 const MySQLDAO = require("../models/MySQLDAO");
 const cashboxStatus = require("../helpers/variables");
+const helperScripts = require("../helpers/helperScripts");
 
 exports.handler = async (event) => {
   let response = {};
   let MySQLDAOInstance;
   try {
-    let queryDate = await formatedDate(
+    let queryDate = await helperScripts.formatedDate(
       event.queryStringParameters.date_required
     );
 
@@ -43,17 +44,6 @@ exports.handler = async (event) => {
   }
 
   return response;
-};
-
-exports.formatedDate = async (datoToValidate) => {
-  try {
-    return new Date(datoToValidate)
-      .toISOString()
-      .replace(/T/, " ")
-      .replace(/\..+/, "");
-  } catch (err) {
-    return false;
-  }
 };
 
 const getDataFromHistorical = async (historicalData) => {
