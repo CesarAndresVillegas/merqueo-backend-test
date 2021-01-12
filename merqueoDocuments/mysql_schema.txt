@@ -1,0 +1,149 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
+USE `mydb` ;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`operations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`operations` (
+  `id` INT NOT NULL,
+  `name` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`movements`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`movements` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `payment` INT NOT NULL,
+  `cash_back` INT NOT NULL,
+  `operations_id` INT NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `fk_movements_operations1_idx` (`operations_id` ASC),
+  CONSTRAINT `fk_movements_operations1`
+    FOREIGN KEY (`operations_id`)
+    REFERENCES `mydb`.`operations` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`cashbox`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`cashbox` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `denomination` VARCHAR(15) NOT NULL,
+  `value` INT NOT NULL,
+  `quantity` INT NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`detail_operation`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`detail_operation` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`movements_details`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`movements_details` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `quantity` INT NOT NULL,
+  `movements_id` INT NOT NULL,
+  `cashbox_id` INT NOT NULL,
+  `detail_operation_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_movements_details_movements1_idx` (`movements_id` ASC),
+  INDEX `fk_movements_details_cashbox1_idx` (`cashbox_id` ASC),
+  INDEX `fk_movements_details_detail_operation1_idx` (`detail_operation_id` ASC),
+  CONSTRAINT `fk_movements_details_movements1`
+    FOREIGN KEY (`movements_id`)
+    REFERENCES `mydb`.`movements` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_movements_details_cashbox1`
+    FOREIGN KEY (`cashbox_id`)
+    REFERENCES `mydb`.`cashbox` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_movements_details_detail_operation1`
+    FOREIGN KEY (`detail_operation_id`)
+    REFERENCES `mydb`.`detail_operation` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `mydb`.`operations`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `mydb`;
+INSERT INTO `mydb`.`operations` (`id`, `name`) VALUES (1, 'PAYMENT');
+INSERT INTO `mydb`.`operations` (`id`, `name`) VALUES (2, 'BASE');
+INSERT INTO `mydb`.`operations` (`id`, `name`) VALUES (3, 'EMPTY');
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `mydb`.`cashbox`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `mydb`;
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (1, 'billete_100000', 100000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (2, 'billete_50000', 50000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (3, 'billete_20000', 20000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (4, 'billete_10000', 10000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (5, 'billete_5000', 5000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (6, 'billete_1000', 1000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (7, 'moneda_1000', 1000, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (8, 'moneda_500', 500, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (9, 'moneda_200', 200, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (10, 'moneda_100', 100, 0);
+INSERT INTO `mydb`.`cashbox` (`id`, `denomination`, `value`, `quantity`) VALUES (11, 'moneda_50', 50, 0);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `mydb`.`detail_operation`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `mydb`;
+INSERT INTO `mydb`.`detail_operation` (`id`, `name`) VALUES (1, 'ADD');
+INSERT INTO `mydb`.`detail_operation` (`id`, `name`) VALUES (2, 'SUBTRACT');
+
+COMMIT;
+
