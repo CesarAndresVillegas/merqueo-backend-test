@@ -79,7 +79,7 @@ exports.handler = async (event) => {
   return response;
 };
 
-const getOperationData = async (body) => {
+exports.getOperationData = async (body) => {
   const {
     billete_100000 = 0,
     billete_50000 = 0,
