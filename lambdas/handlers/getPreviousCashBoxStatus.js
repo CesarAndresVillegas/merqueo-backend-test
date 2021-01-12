@@ -45,7 +45,7 @@ exports.handler = async (event) => {
   return response;
 };
 
-const formatedDate = async (datoToValidate) => {
+exports.formatedDate = async (datoToValidate) => {
   try {
     return new Date(datoToValidate)
       .toISOString()

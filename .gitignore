@@ -1,6 +1,6 @@
 *.js
 !lambdas/**
-!test/*
+!test/**
 !jest.config.js
 !test_database_credentials.js
 *.d.ts
