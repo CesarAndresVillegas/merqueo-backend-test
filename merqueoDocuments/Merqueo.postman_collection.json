@@ -1,0 +1,171 @@
+{
+  "info": {
+    "_postman_id": "9c8de3d6-816b-4b3a-af77-06232279f262",
+    "name": "Merqueo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "getCashBoxStatus",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/cash_box/get_status",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "cash_box", "get_status"]
+        },
+        "description": "API to get cash box current state. Don't require any parameter and return an array with each denomination and his current quantity.\n\nResonse:\n\n{\n    \"results\": [\n        {\n            \"billete_100000\": 10,\n            \"billete_50000\": 9,\n            \"billete_20000\": 8,\n            \"billete_10000\": 7,\n            \"billete_5000\": 6,\n            \"billete_1000\": 5,\n            \"billete_500\": 4,\n            \"billete_200\": 3,\n            \"billete_100\": 2,\n            \"billete_50\": 1\n        }\n    ]\n}"
+      },
+      "response": []
+    },
+    {
+      "name": "paymentRegister",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"billete_100000\": 3,\n    \"billete_20000\": 5,\n    \"moneda_1000\": 2,\n    \"total_payment\": 400700\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/payment_register",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "payment_register"]
+        },
+        "description": "No implementado."
+      },
+      "response": []
+    },
+    {
+      "name": "emptyCashBox",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/cash_box/empty",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "cash_box", "empty"]
+        },
+        "description": "API to set the cash box base. Require a body with a JSON like:\n{\n    \"billete_100000\": 10,\n    \"billete_50000\": 9,\n    \"billete_20000\": 8,\n    \"billete_10000\": 7,\n    \"billete_5000\": 6,\n    \"billete_1000\": 5,\n    \"billete_500\": 4,\n    \"billete_200\": 3,\n    \"billete_100\": 2,\n    \"billete_50\": 1\n}\n\nResonse:\n\n{\n    \"results\": {\n        \"fieldCount\": 0,\n        \"affectedRows\": 1,\n        \"insertId\": 0,\n        \"serverStatus\": 34,\n        \"warningCount\": 0,\n        \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n        \"protocol41\": true,\n        \"changedRows\": 1\n    }\n}"
+      },
+      "response": []
+    },
+    {
+      "name": "setCashBoxBase",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"billete_100000\": 4,\n    \"billete_20000\": 7,\n    \"billete_1000\": 4,\n    \"moneda_1000\": 15,\n    \"moneda_200\": 9,\n    \"moneda_100\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/cash_box/set_base",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "cash_box", "set_base"]
+        },
+        "description": "BUILD\nAPI to empty the cash box. Dont require any param.\n\nResonse:\n\n{\n    \"results\": {\n        \"fieldCount\": 0,\n        \"affectedRows\": 1,\n        \"insertId\": 0,\n        \"serverStatus\": 34,\n        \"warningCount\": 0,\n        \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n        \"protocol41\": true,\n        \"changedRows\": 1\n    }\n}"
+      },
+      "response": []
+    },
+    {
+      "name": "getAllMovements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/get_movements",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "get_movements"]
+        },
+        "description": "No implementado."
+      },
+      "response": []
+    },
+    {
+      "name": "getPreviousCashBoxStatus",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://z4ryevcvz9.execute-api.us-east-1.amazonaws.com/prod/merqueo/cash_box/get_previous?date_required=2021-01-11 10:37:38",
+          "protocol": "https",
+          "host": [
+            "z4ryevcvz9",
+            "execute-api",
+            "us-east-1",
+            "amazonaws",
+            "com"
+          ],
+          "path": ["prod", "merqueo", "cash_box", "get_previous"],
+          "query": [
+            {
+              "key": "date_required",
+              "value": "2021-01-11 10:37:38"
+            }
+          ]
+        },
+        "description": "No implementado."
+      },
+      "response": []
+    }
+  ]
+}
